@@ -79,7 +79,7 @@ char* readFile(char* fileName){
     int spaces = 0;
     for(int i=0;i<byteSize;i++){
         if(codeIn[i] != ' '){
-            codeIn[spaces++] = codeIn[i]!='_'?codeIn[i]:' ';
+            codeIn[spaces++] = codeIn[i];
         }
     }
     codeIn[spaces] = '\0';
@@ -106,7 +106,7 @@ int runCode(char* codeIn){
         char *params = (char*)calloc(strlen(line)-3, CHAR_SIZE);
         strcpy(params,line+3);
         strncpy(command, line, 3);
-        printf("Command: %s, Params: %s\n",command,params);
+        // printf("Command: %s, Params: %s\n",command,params);
 
         switch(*(int*)command){
         case 7368041:
@@ -129,6 +129,9 @@ int runCode(char* codeIn){
                     // not a variable, remove quotes if any and print
                     out.erase(remove(out.begin(), out.end(), '\"'),out.end());
                     boost::replace_all(out, "\\n","\n");
+                    boost::replace_all(out, "\\c",",");
+                    boost::replace_all(out, "\\s"," ");
+                    boost::replace_all(out, "\\t","\t");
                     std::cout << out;
                 }
             }
@@ -150,6 +153,60 @@ int runCode(char* codeIn){
             }if(variables.count(inputs[0])){
                 std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << std::endl;
                 return 1;
+            }
+            double a=0, b = 0;
+            if(variables.count(inputs[1])){
+                switch(variables[inputs[1]].which()){
+                case 0:
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << std::endl;
+                    return 1;
+                case 1:
+                    a = boost::get<int>(variables[inputs[1]]);
+                    break;
+                case 2: 
+                    a = boost::get<double>(variables[inputs[1]]);
+                }
+            }else{
+                try{
+                    a = std::stod(inputs[1]);
+                }catch(std::exception& e){
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << std::endl;
+                    return 1;
+                }
+            }if(variables.count(inputs[2])){
+                switch(variables[inputs[2]].which()){
+                case 0:
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    return 1;
+                case 1:
+                    b = boost::get<int>(variables[inputs[2]]);
+                    break;
+                case 2: 
+                    b = boost::get<double>(variables[inputs[2]]);
+                }
+            }else{
+                try{
+                    b = std::stod(inputs[2]);
+                }catch(std::exception& e){
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    return 1;
+                }
+            }
+
+            if(undeclared.count(inputs[0])){
+                switch(undeclared[inputs[0]]){
+                case 0:
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    return 1;
+                case 1:
+                    variables[inputs[0]] = (int)(a+b);
+                    break;
+                case 2:
+                    variables[inputs[0]] = a+b;
+                undeclared.erase(inputs[0]);
+                }
+            }else{
+                variables[inputs[0]] = a+b;
             }
 
             break;
