@@ -1,5 +1,7 @@
 int c
 int c, 4
 dbl d, 3.4
+add e, c, d
+out e, "\n"
 str a, Hello World!
-out String:,a, __, c, __, d, "a"
+out String:,a, __, c, __, d, "a\n"

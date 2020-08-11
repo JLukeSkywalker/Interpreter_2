@@ -15,10 +15,6 @@ case 2:
 */
 
 
-
-
-
-
 #include <stdio.h>
 #include <string.h>
 #include <boost/variant.hpp>
@@ -27,6 +23,7 @@ case 2:
 #include <unordered_map>
 #include <stdlib.h>
 #include <iostream>
+#include <exception>
 
 #define CHAR_SIZE sizeof(char)
 
@@ -111,10 +108,6 @@ int runCode(char* codeIn){
         strncpy(command, line, 3);
         printf("Command: %s, Params: %s\n",command,params);
 
-        // tokenize the params and store into a vector
-        std::vector<std::string> inputs;
-        boost::split(inputs, params, [](char c){return c == ',';});
-
         switch(*(int*)command){
         case 7368041:
             // imp (import)
@@ -122,22 +115,25 @@ int runCode(char* codeIn){
         case 7561577:
             //ias (import as)
             break;
-        case 7632239:
+        case 7632239:{
             // out (output)
+            // tokenize the params and store into a vector
+            std::vector<std::string> inputs;
+            boost::split(inputs, params, [](char c){return c == ',';});
             // loop through the vector of params
             for (auto & out : inputs) {
-                std::cout << '\n' << out << '\n';
                 // if its a variable, print its value
                 if(variables.count(out)){
                     std::cout << variables[out];
                 }else{
                     // not a variable, remove quotes if any and print
                     out.erase(remove(out.begin(), out.end(), '\"'),out.end());
+                    boost::replace_all(out, "\\n","\n");
                     std::cout << out;
                 }
             }
             break;
-        case 7368297:
+        }case 7368297:
             // inp (input)
             break;
         case 6514035:
@@ -145,6 +141,9 @@ int runCode(char* codeIn){
             break;
         case 6579297:{
             // add (addition)
+            // tokenize the params and store into a vector
+            std::vector<std::string> inputs;
+            boost::split(inputs, params, [](char c){return c == ',';});
             if(inputs.size() != 3){
                 printf("Error on Line: %d, Invalid number of parameters: %s\n",lineNum, params);
                 return 1;
@@ -172,8 +171,10 @@ int runCode(char* codeIn){
             if(index != NULL){
                 char varName[index-params];
                 strncpy(varName, params,index-params);
-                int value = atoi(index+1);
-                if(strcmp(index+1,"0")!=0 && value==0){
+                int value;
+                try{
+                    value = std::stoi(index+1);
+                }catch(std::exception& e){
                     printf("Error on Line: %d, Invalid parameter: %s\n",lineNum, index+1);
                     return 1;
                 }
@@ -205,8 +206,10 @@ int runCode(char* codeIn){
             if(index != NULL){
                 char varName[index-params];
                 strncpy(varName, params,index-params);
-                double value = atof(index+1);
-                if(strncmp(index+1,"0",1)!=0 && value==0){
+                double value;
+                try{
+                    value = std::stod(index+1);
+                }catch(std::exception& e){
                     printf("Error on Line: %d, Invalid parameter: %s\n",lineNum, index+1);
                     return 1;
                 }
