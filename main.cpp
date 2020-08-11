@@ -1,3 +1,24 @@
+// SAVE FOR LATER
+
+/*
+switch(variables[out].which()){
+case 0:
+    std::cout << boost::get<std::string>(variables[out]);
+    break;
+case 1:
+    std::cout << boost::get<int>(variables[out]);
+    break;
+case 2:
+    std::cout << boost::get<double>(variables[out]);
+    break;
+}
+*/
+
+
+
+
+
+
 #include <stdio.h>
 #include <string.h>
 #include <boost/variant.hpp>
@@ -21,8 +42,8 @@ int main(int numArgs, char* args[]) {
     if(numArgs < 2 || numArgs > 2){
         //printf("Invalid or no filename given\n");
         //return 1;
+        args[1] = "hello.txt";
     }
-    args[1] = "hello.txt";
     char* codeIn = readFile(args[1]);
     if(codeIn == NULL){
         printf("Unable to read file: %s\n",args[1]);
@@ -90,6 +111,10 @@ int runCode(char* codeIn){
         strncpy(command, line, 3);
         printf("Command: %s, Params: %s\n",command,params);
 
+        // tokenize the params and store into a vector
+        std::vector<std::string> inputs;
+        boost::split(inputs, params, [](char c){return c == ',';});
+
         switch(*(int*)command){
         case 7368041:
             // imp (import)
@@ -97,45 +122,49 @@ int runCode(char* codeIn){
         case 7561577:
             //ias (import as)
             break;
-        case 7632239:{
+        case 7632239:
             // out (output)
-            std::vector<std::string> outputs;
-            boost::split(outputs, params, [](char c){return c == ',';});
-            for (auto & out : outputs) {
+            // loop through the vector of params
+            for (auto & out : inputs) {
+                std::cout << '\n' << out << '\n';
+                // if its a variable, print its value
                 if(variables.count(out)){
-                    switch(variables[out].which()){
-                    case 0:
-                        std::cout << boost::get<std::string>(variables[out]);
-                        break;
-                    case 1:
-                        std::cout << boost::get<int>(variables[out]);
-                        break;
-                    case 2:
-                        std::cout << boost::get<double>(variables[out]);
-                        break;
-                    }
+                    std::cout << variables[out];
                 }else{
+                    // not a variable, remove quotes if any and print
+                    out.erase(remove(out.begin(), out.end(), '\"'),out.end());
                     std::cout << out;
                 }
             }
             break;
-        }case 7368297:
+        case 7368297:
             // inp (input)
             break;
         case 6514035:
             // sec (seconds)
             break;
-        case 6579297:
+        case 6579297:{
             // add (addition)
+            if(inputs.size() != 3){
+                printf("Error on Line: %d, Invalid number of parameters: %s\n",lineNum, params);
+                return 1;
+            }if(variables.count(inputs[0])){
+                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << std::endl;
+                return 1;
+            }
+
             break;
-        case 6452595:
-            // sub (subtraction)
+        }case 6452595:{
+            // sub (subtract)
+
             break;
-        case 7107949:
-            // mul (multiplication)
+        }case 7107949:
+            // mul (multiply)
+
             break;
         case 7760228:
-            // div (division)
+            // div (divide)
+
             break;
         case 7630441:{
             // int (make int)
