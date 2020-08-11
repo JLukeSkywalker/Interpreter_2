@@ -1,8 +1,16 @@
 #include <stdio.h>
 #include <string.h>
+#include <boost/variant.hpp>
+#include <boost/algorithm/string.hpp>
+#include <string>
+#include <unordered_map>
 #include <stdlib.h>
+#include <iostream>
 
 #define CHAR_SIZE sizeof(char)
+
+std::unordered_map<std::string, boost::variant<std::string,int,double>> variables;
+std::unordered_map<std::string, int> undeclared;
 
 // Function definitions
 char* readFile(char* fileName);
@@ -11,10 +19,10 @@ int runCode(char* codeIn);
 int main(int numArgs, char* args[]) {
     // Make sure only a fileName was given from command line
     if(numArgs < 2 || numArgs > 2){
-        printf("Invalid or no filename given\n");
-        return 1;
+        //printf("Invalid or no filename given\n");
+        //return 1;
     }
-
+    args[1] = "hello.txt";
     char* codeIn = readFile(args[1]);
     if(codeIn == NULL){
         printf("Unable to read file: %s\n",args[1]);
@@ -53,7 +61,7 @@ char* readFile(char* fileName){
     int spaces = 0;
     for(int i=0;i<byteSize;i++){
         if(codeIn[i] != ' '){
-            codeIn[spaces++] = codeIn[i];
+            codeIn[spaces++] = codeIn[i]!='_'?codeIn[i]:' ';
         }
     }
     codeIn[spaces] = '\0';
@@ -80,8 +88,7 @@ int runCode(char* codeIn){
         char *params = (char*)calloc(strlen(line)-3, CHAR_SIZE);
         strcpy(params,line+3);
         strncpy(command, line, 3);
-        printf("%s\n",command);
-        printf("%s\n",params);
+        printf("Command: %s, Params: %s\n",command,params);
 
         switch(*(int*)command){
         case 7368041:
@@ -90,10 +97,29 @@ int runCode(char* codeIn){
         case 7561577:
             //ias (import as)
             break;
-        case 7632239:
+        case 7632239:{
             // out (output)
+            std::vector<std::string> outputs;
+            boost::split(outputs, params, [](char c){return c == ',';});
+            for (auto & out : outputs) {
+                if(variables.count(out)){
+                    switch(variables[out].which()){
+                    case 0:
+                        std::cout << boost::get<std::string>(variables[out]);
+                        break;
+                    case 1:
+                        std::cout << boost::get<int>(variables[out]);
+                        break;
+                    case 2:
+                        std::cout << boost::get<double>(variables[out]);
+                        break;
+                    }
+                }else{
+                    std::cout << out;
+                }
+            }
             break;
-        case 7368297:
+        }case 7368297:
             // inp (input)
             break;
         case 6514035:
@@ -113,17 +139,57 @@ int runCode(char* codeIn){
             break;
         case 7630441:{
             // int (make int)
+            char* index = strchr(params,',');
+            if(index != NULL){
+                char varName[index-params];
+                strncpy(varName, params,index-params);
+                int value = atoi(index+1);
+                if(strcmp(index+1,"0")!=0 && value==0){
+                    printf("Error on Line: %d, Invalid parameter: %s\n",lineNum, index+1);
+                    return 1;
+                }
+                variables[varName] = value;
+                if(undeclared.count(varName)){
+                    undeclared.erase(varName);
+                }
+            }else{
+                undeclared[params] = 1;
+            }
             break;
-        }case 7500915:
+        }case 7500915:{
             // str (make string)
+            char* index = strchr(params,',');
+            if(index != NULL){
+                char varName[index-params];
+                strncpy(varName, params,index-params);
+                variables[varName] = index+1;
+                if(undeclared.count(varName)){
+                    undeclared.erase(varName);
+                }
+            }else{
+                undeclared[params] = 0;
+            }
             break;
-        case 7103076:
+        }case 7103076:{
             // dbl (make double)
+            char* index = strchr(params,',');
+            if(index != NULL){
+                char varName[index-params];
+                strncpy(varName, params,index-params);
+                double value = atof(index+1);
+                if(strncmp(index+1,"0",1)!=0 && value==0){
+                    printf("Error on Line: %d, Invalid parameter: %s\n",lineNum, index+1);
+                    return 1;
+                }
+                variables[varName] = value;
+                if(undeclared.count(varName)){
+                    undeclared.erase(varName);
+                }
+            }else{
+                undeclared[params] = 2;
+            }
             break;
-        case 7303010:
-            // boo (make boolean)
-            break;
-        case 7564393:
+        }case 7564393:
             // ils (make int list)
             break;
         case 7564403:
@@ -131,9 +197,6 @@ int runCode(char* codeIn){
             break;
         case 7564388:
             // dls (make double list)
-            break;
-        case 7564386:
-            // bls (make boolean list)
             break;
         case 7564406:
             // vls (make variable list)
@@ -178,7 +241,6 @@ int runCode(char* codeIn){
             printf("Invalid command found on line %d: %s\n",lineNum,line);
             return 1;
         }
-
         // Move iterator to next line
         line=strtok(NULL,"\n");
     }// END WHILE
