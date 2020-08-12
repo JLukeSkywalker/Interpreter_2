@@ -1,19 +1,8 @@
-// SAVE FOR LATER
-
 /*
-switch(variables[out].which()){
-case 0:
-    std::cout << boost::get<std::string>(variables[out]);
-    break;
-case 1:
-    std::cout << boost::get<int>(variables[out]);
-    break;
-case 2:
-    std::cout << boost::get<double>(variables[out]);
-    break;
-}
-*/
+    a lot of the code in add/sub/mul/div/mod is the same,
+    probs a way to condense/combine
 
+*/
 
 #include <stdio.h>
 #include <string.h>
@@ -24,6 +13,7 @@ case 2:
 #include <stdlib.h>
 #include <iostream>
 #include <exception>
+#include <cfenv>
 
 #define CHAR_SIZE sizeof(char)
 
@@ -58,7 +48,6 @@ char* readFile(char* fileName){
     // read in entire file
     fileData = fopen(fileName,"r");
     if(fileData == NULL){
-        printf("Unable to read file: %s\n",fileName);
         return NULL;
     }
     fseek(fileData,0L,SEEK_END);  // Find the end of the file
@@ -67,7 +56,6 @@ char* readFile(char* fileName){
 
     char* codeIn = (char*)calloc(byteSize,CHAR_SIZE);
     if(codeIn == NULL){
-        printf("Unable to read file: %s\n",fileName);
         return NULL;
     }
 
@@ -77,10 +65,16 @@ char* readFile(char* fileName){
     // Remove all spaces from the file
     // LATER, PROBABLY EXTRACT FUNCTION POSITIONS HERE TOO
     int spaces = 0;
+    int openQuote = 0;
     for(int i=0;i<byteSize;i++){
-        if(codeIn[i] != ' '){
+        if(codeIn[i] == '"')
+            openQuote ^= 1;
+        if(openQuote || codeIn[i] != ' ')
             codeIn[spaces++] = codeIn[i];
-        }
+    }
+    if(openQuote){
+        printf("Unmatched Quote\n");
+        return NULL;
     }
     codeIn[spaces] = '\0';
 
@@ -117,6 +111,7 @@ int runCode(char* codeIn){
             break;
         case 7632239:{
             // out (output)
+
             // tokenize the params and store into a vector
             std::vector<std::string> inputs;
             boost::split(inputs, params, [](char c){return c == ',';});
@@ -136,14 +131,56 @@ int runCode(char* codeIn){
                 }
             }
             break;
-        }case 7368297:
+        }case 7368297:{
             // inp (input)
+
+            // tokenize the params and store into a vector
+            std::vector<std::string> inputs;
+            boost::split(inputs, params, [](char c){return c == ',';});
+
+            if(inputs.size() != 1){
+                printf("Error on Line: %d, Invalid number of parameters: %s\n",lineNum, params);
+                return 1;
+            }if(variables.count(inputs[0])){
+                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << std::endl;
+                return 1;
+            }if(undeclared.count(inputs[0])){
+                switch(undeclared[inputs[0]]){
+                case 0:{
+                    std::string userIn;
+                    std::getline(std::cin,userIn);
+                    variables[inputs[0]] = userIn;
+                    break;
+                }case 1:{
+                    int userIn;
+                    if(scanf("%d", &userIn)<0){
+                        printf("Error on Line: %d, Invalid user input for type int",lineNum);
+                        return 1;
+                    }
+                    variables[inputs[0]] = userIn;
+                    break;
+                }case 2:
+                    double userIn;
+                    if(scanf("%lf", &userIn)<0){
+                        printf("Error on Line: %d, Invalid user input for type double",lineNum);
+                        return 1;
+                    }
+                    variables[inputs[0]] = userIn;
+                }
+                undeclared.erase(inputs[0]);
+            }else{
+                std::string userIn;
+                std::getline(std::cin,userIn);
+                variables[inputs[0]] = userIn;
+            }
+
             break;
-        case 6514035:
+        }case 6514035:
             // sec (seconds)
             break;
         case 6579297:{
             // add (addition)
+
             // tokenize the params and store into a vector
             std::vector<std::string> inputs;
             boost::split(inputs, params, [](char c){return c == ',';});
@@ -213,16 +250,295 @@ int runCode(char* codeIn){
         }case 6452595:{
             // sub (subtract)
 
+            // tokenize the params and store into a vector
+            std::vector<std::string> inputs;
+            boost::split(inputs, params, [](char c){return c == ',';});
+            if(inputs.size() != 3){
+                printf("Error on Line: %d, Invalid number of parameters: %s\n",lineNum, params);
+                return 1;
+            }if(variables.count(inputs[0])){
+                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << std::endl;
+                return 1;
+            }
+            double a=0, b = 0;
+            if(variables.count(inputs[1])){
+                switch(variables[inputs[1]].which()){
+                case 0:
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << std::endl;
+                    return 1;
+                case 1:
+                    a = boost::get<int>(variables[inputs[1]]);
+                    break;
+                case 2: 
+                    a = boost::get<double>(variables[inputs[1]]);
+                }
+            }else{
+                try{
+                    a = std::stod(inputs[1]);
+                }catch(std::exception& e){
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << std::endl;
+                    return 1;
+                }
+            }if(variables.count(inputs[2])){
+                switch(variables[inputs[2]].which()){
+                case 0:
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    return 1;
+                case 1:
+                    b = boost::get<int>(variables[inputs[2]]);
+                    break;
+                case 2: 
+                    b = boost::get<double>(variables[inputs[2]]);
+                }
+            }else{
+                try{
+                    b = std::stod(inputs[2]);
+                }catch(std::exception& e){
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    return 1;
+                }
+            }
+
+            if(undeclared.count(inputs[0])){
+                switch(undeclared[inputs[0]]){
+                case 0:
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    return 1;
+                case 1:
+                    variables[inputs[0]] = (int)(a-b);
+                    break;
+                case 2:
+                    variables[inputs[0]] = a-b;
+                undeclared.erase(inputs[0]);
+                }
+            }else{
+                variables[inputs[0]] = a-b;
+            }
+
             break;
-        }case 7107949:
+        }case 7107949:{
             // mul (multiply)
 
-            break;
-        case 7760228:
-            // div (divide)
+            // tokenize the params and store into a vector
+            std::vector<std::string> inputs;
+            boost::split(inputs, params, [](char c){return c == ',';});
+            if(inputs.size() != 3){
+                printf("Error on Line: %d, Invalid number of parameters: %s\n",lineNum, params);
+                return 1;
+            }if(variables.count(inputs[0])){
+                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << std::endl;
+                return 1;
+            }
+            double a=0, b = 0;
+            if(variables.count(inputs[1])){
+                switch(variables[inputs[1]].which()){
+                case 0:
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << std::endl;
+                    return 1;
+                case 1:
+                    a = boost::get<int>(variables[inputs[1]]);
+                    break;
+                case 2: 
+                    a = boost::get<double>(variables[inputs[1]]);
+                }
+            }else{
+                try{
+                    a = std::stod(inputs[1]);
+                }catch(std::exception& e){
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << std::endl;
+                    return 1;
+                }
+            }if(variables.count(inputs[2])){
+                switch(variables[inputs[2]].which()){
+                case 0:
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    return 1;
+                case 1:
+                    b = boost::get<int>(variables[inputs[2]]);
+                    break;
+                case 2: 
+                    b = boost::get<double>(variables[inputs[2]]);
+                }
+            }else{
+                try{
+                    b = std::stod(inputs[2]);
+                }catch(std::exception& e){
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    return 1;
+                }
+            }
+
+            if(undeclared.count(inputs[0])){
+                switch(undeclared[inputs[0]]){
+                case 0:
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    return 1;
+                case 1:
+                    variables[inputs[0]] = (int)(a*b);
+                    break;
+                case 2:
+                    variables[inputs[0]] = a*b;
+                undeclared.erase(inputs[0]);
+                }
+            }else{
+                variables[inputs[0]] = a*b;
+            }
 
             break;
-        case 7630441:{
+        }case 7760228:{
+            // div (divide)
+
+            // tokenize the params and store into a vector
+            std::vector<std::string> inputs;
+            boost::split(inputs, params, [](char c){return c == ',';});
+            if(inputs.size() != 3){
+                printf("Error on Line: %d, Invalid number of parameters: %s\n",lineNum, params);
+                return 1;
+            }if(variables.count(inputs[0])){
+                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << std::endl;
+                return 1;
+            }
+            double a=0, b = 0;
+            if(variables.count(inputs[1])){
+                switch(variables[inputs[1]].which()){
+                case 0:
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << std::endl;
+                    return 1;
+                case 1:
+                    a = boost::get<int>(variables[inputs[1]]);
+                    break;
+                case 2: 
+                    a = boost::get<double>(variables[inputs[1]]);
+                }
+            }else{
+                try{
+                    a = std::stod(inputs[1]);
+                }catch(std::exception& e){
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << std::endl;
+                    return 1;
+                }
+            }if(variables.count(inputs[2])){
+                switch(variables[inputs[2]].which()){
+                case 0:
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    return 1;
+                case 1:
+                    b = boost::get<int>(variables[inputs[2]]);
+                    break;
+                case 2: 
+                    b = boost::get<double>(variables[inputs[2]]);
+                }
+            }else{
+                try{
+                    b = std::stod(inputs[2]);
+                }catch(std::exception& e){
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    return 1;
+                }
+            }
+
+            if(undeclared.count(inputs[0])){
+                switch(undeclared[inputs[0]]){
+                case 0:
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    return 1;
+                case 1:
+                    variables[inputs[0]] = (int)(a/b);
+                    break;
+                case 2:
+                    variables[inputs[0]] = a/b;
+                undeclared.erase(inputs[0]);
+                }
+            }else{
+                variables[inputs[0]] = a/b;
+            }
+
+            break;
+        }case 6582125:{
+            // mod (modulus)
+
+            // tokenize the params and store into a vector
+            std::vector<std::string> inputs;
+            boost::split(inputs, params, [](char c){return c == ',';});
+            if(inputs.size() != 3){
+                printf("Error on Line: %d, Invalid number of parameters: %s\n",lineNum, params);
+                return 1;
+            }if(variables.count(inputs[0])){
+                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << std::endl;
+                return 1;
+            }
+            double a=0, b = 0;
+            if(variables.count(inputs[1])){
+                switch(variables[inputs[1]].which()){
+                case 0:
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << std::endl;
+                    return 1;
+                case 1:
+                    a = boost::get<int>(variables[inputs[1]]);
+                    break;
+                case 2: 
+                    a = boost::get<double>(variables[inputs[1]]);
+                }
+            }else{
+                try{
+                    a = std::stod(inputs[1]);
+                }catch(std::exception& e){
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << std::endl;
+                    return 1;
+                }
+            }if(variables.count(inputs[2])){
+                switch(variables[inputs[2]].which()){
+                case 0:
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    return 1;
+                case 1:
+                    b = boost::get<int>(variables[inputs[2]]);
+                    break;
+                case 2: 
+                    b = boost::get<double>(variables[inputs[2]]);
+                }
+            }else{
+                try{
+                    b = std::stod(inputs[2]);
+                }catch(std::exception& e){
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    return 1;
+                }
+            }
+
+            if(undeclared.count(inputs[0])){
+                switch(undeclared[inputs[0]]){
+                case 0:
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    return 1;
+                case 1:
+                    std::feclearexcept(FE_ALL_EXCEPT);
+                    variables[inputs[0]] = (int)std::fmod(a,b);
+                    if(std::fetestexcept(FE_INVALID)){
+                        printf("Error on Line: %d, divide by zero\n",lineNum);
+                        return 1;
+                    }
+                    break;
+                case 2:
+                    std::feclearexcept(FE_ALL_EXCEPT);
+                    variables[inputs[0]] = std::fmod(a,b);
+                    if(std::fetestexcept(FE_INVALID)){
+                        printf("Error on Line: %d, divide by zero\n",lineNum);
+                        return 1;
+                    }
+                undeclared.erase(inputs[0]);
+                }
+            }else{
+                std::feclearexcept(FE_ALL_EXCEPT);
+                variables[inputs[0]] = std::fmod(a,b);
+                if(std::fetestexcept(FE_INVALID)){
+                    printf("Error on Line: %d, divide by zero\n",lineNum);
+                    return 1;
+                }
+            }
+
+            break;   
+        }case 7630441:{
             // int (make int)
             char* index = strchr(params,',');
             if(index != NULL){
@@ -242,6 +558,7 @@ int runCode(char* codeIn){
             }else{
                 undeclared[params] = 1;
             }
+            
             break;
         }case 7500915:{
             // str (make string)
@@ -249,13 +566,16 @@ int runCode(char* codeIn){
             if(index != NULL){
                 char varName[index-params];
                 strncpy(varName, params,index-params);
-                variables[varName] = index+1;
+                std::string value = index+1;
+                value.erase(remove(value.begin(), value.end(), '\"'),value.end());
+                variables[varName] = value;
                 if(undeclared.count(varName)){
                     undeclared.erase(varName);
                 }
             }else{
                 undeclared[params] = 0;
             }
+
             break;
         }case 7103076:{
             // dbl (make double)
@@ -277,6 +597,7 @@ int runCode(char* codeIn){
             }else{
                 undeclared[params] = 2;
             }
+
             break;
         }case 7564393:
             // ils (make int list)
@@ -302,16 +623,47 @@ int runCode(char* codeIn){
         case 7234924:
             // len (get length of list or string)
             break;
-        case 7958627:
-            // cpy (copy data from one var to another)
-            break;
-        case 7103844:
+        case 7103844:{
             // del (delete variable)
+            
+            // tokenize the params and store into a vector
+            std::vector<std::string> inputs;
+            boost::split(inputs, params, [](char c){return c == ',';});
+            // loop through the vector of params
+            for (auto & param : inputs)
+                variables.erase(param);
+            
             break;
-        case 7102838:
+        }case 7102838:{
             // val (check if variable available)
+
+            // tokenize the params and store into a vector
+            std::vector<std::string> inputs;
+            boost::split(inputs, params, [](char c){return c == ',';});
+
+            if(inputs.size() != 2){
+                printf("Error on Line: %d, Invalid number of parameters: %s\n",lineNum, params);
+                return 1;
+            }if(variables.count(inputs[0])){
+                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << std::endl;
+                return 1;
+            }
+            if(undeclared.count(inputs[0])){
+                switch(undeclared[inputs[0]]){
+                case 0:
+                    printf("Error on Line: %d, cannot store bool into string\n",lineNum);
+                    return 1;
+                case 1:
+                case 2:
+                    variables[inputs[0]] = (int)variables.count(inputs[1]);
+                undeclared.erase(inputs[0]);
+                }
+            }else{
+                variables[inputs[0]] = (int)variables.count(inputs[1]);
+            }
+
             break;
-        case 7103858:
+        }case 7103858:
             // rel (perform boolean operation)
             break;
         case 7500389:

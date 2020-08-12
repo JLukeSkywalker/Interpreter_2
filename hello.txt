@@ -1,7 +1,10 @@
 int c
-int c, 4
+inp c
+out "C is: ", c, \n
 dbl d, 3.4
-add e, c, d
-out e, "\n"
-str a, Hello World!
-out String:_,a, __, c, __, d, "a\n"
+add e, d, c
+mod f, d, c
+del f, e, q
+out E:\s,e, "\n",F:\s,f,\n
+str a, "Hello World!"
+out "String: ",a, \s\s, c, \s\s, d, "a\n"
