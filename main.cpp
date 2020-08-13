@@ -14,11 +14,13 @@
 #include <iostream>
 #include <exception>
 #include <cfenv>
+#include <stack>
 
 #define CHAR_SIZE sizeof(char)
 
 std::unordered_map<std::string, boost::variant<std::string,int,double>> variables;
 std::unordered_map<std::string, int> undeclared;
+std::stack<boost::variant<std::string,int,double>> theStack;
 
 // Function definitions
 char* readFile(char* fileName);
@@ -103,15 +105,16 @@ int runCode(char* codeIn){
         // printf("Command: %s, Params: %s\n",command,params);
 
         switch(*(int*)command){
-        case 7368041:
-            // imp (import)
+        // imp (import)
+        case 7368041:{
             break;
-        case 7561577:
-            //ias (import as)
+        }
+        //ias (import as)
+        case 7561577:{
             break;
+        }
+        // out (output)
         case 7632239:{
-            // out (output)
-
             // tokenize the params and store into a vector
             std::vector<std::string> inputs;
             boost::split(inputs, params, [](char c){return c == ',';});
@@ -131,9 +134,9 @@ int runCode(char* codeIn){
                 }
             }
             break;
-        }case 7368297:{
-            // inp (input)
-
+        }
+        // inp (input)
+        case 7368297:{
             // tokenize the params and store into a vector
             std::vector<std::string> inputs;
             boost::split(inputs, params, [](char c){return c == ',';});
@@ -175,12 +178,13 @@ int runCode(char* codeIn){
             }
 
             break;
-        }case 6514035:
-            // sec (seconds)
+        }
+        // sec (seconds)
+        case 6514035:{
             break;
+        }
+        // add (addition)
         case 6579297:{
-            // add (addition)
-
             // tokenize the params and store into a vector
             std::vector<std::string> inputs;
             boost::split(inputs, params, [](char c){return c == ',';});
@@ -247,9 +251,9 @@ int runCode(char* codeIn){
             }
 
             break;
-        }case 6452595:{
-            // sub (subtract)
-
+        }
+        // sub (subtract)
+        case 6452595:{
             // tokenize the params and store into a vector
             std::vector<std::string> inputs;
             boost::split(inputs, params, [](char c){return c == ',';});
@@ -316,9 +320,9 @@ int runCode(char* codeIn){
             }
 
             break;
-        }case 7107949:{
-            // mul (multiply)
-
+        }
+        // mul (multiply)
+        case 7107949:{
             // tokenize the params and store into a vector
             std::vector<std::string> inputs;
             boost::split(inputs, params, [](char c){return c == ',';});
@@ -385,9 +389,9 @@ int runCode(char* codeIn){
             }
 
             break;
-        }case 7760228:{
-            // div (divide)
-
+        }
+        // div (divide)
+        case 7760228:{
             // tokenize the params and store into a vector
             std::vector<std::string> inputs;
             boost::split(inputs, params, [](char c){return c == ',';});
@@ -454,9 +458,9 @@ int runCode(char* codeIn){
             }
 
             break;
-        }case 6582125:{
-            // mod (modulus)
-
+        }
+        // mod (modulus)
+        case 6582125:{
             // tokenize the params and store into a vector
             std::vector<std::string> inputs;
             boost::split(inputs, params, [](char c){return c == ',';});
@@ -538,12 +542,17 @@ int runCode(char* codeIn){
             }
 
             break;   
-        }case 7630441:{
-            // int (make int)
+        }
+        // int (make int)
+        case 7630441:{
             char* index = strchr(params,',');
             if(index != NULL){
                 char varName[index-params];
                 strncpy(varName, params,index-params);
+                if(variables.count[varName]){
+                    printf("Error on Line: %d, Variable already in use: %s\n",lineNum, varName+1);
+                    return 1;
+                }
                 int value;
                 try{
                     value = std::stoi(index+1);
@@ -560,12 +569,17 @@ int runCode(char* codeIn){
             }
             
             break;
-        }case 7500915:{
-            // str (make string)
+        }
+        // str (make string)
+        case 7500915:{
             char* index = strchr(params,',');
             if(index != NULL){
                 char varName[index-params];
                 strncpy(varName, params,index-params);
+                if(variables.count[varName]){
+                    printf("Error on Line: %d, Variable already in use: %s\n",lineNum, varName+1);
+                    return 1;
+                }
                 std::string value = index+1;
                 value.erase(remove(value.begin(), value.end(), '\"'),value.end());
                 variables[varName] = value;
@@ -577,12 +591,17 @@ int runCode(char* codeIn){
             }
 
             break;
-        }case 7103076:{
-            // dbl (make double)
+        }
+        // dbl (make double)
+        case 7103076:{
             char* index = strchr(params,',');
             if(index != NULL){
                 char varName[index-params];
                 strncpy(varName, params,index-params);
+                if(variables.count[varName]){
+                    printf("Error on Line: %d, Variable already in use: %s\n",lineNum, varName+1);
+                    return 1;
+                }
                 double value;
                 try{
                     value = std::stod(index+1);
@@ -599,29 +618,40 @@ int runCode(char* codeIn){
             }
 
             break;
-        }case 7564393:
-            // ils (make int list)
+        }
+        // put (push to theStack)
+        case 7632240:{
+            char* index = strchr(params,',');
+            if(index == NULL){
+                printf("Error on Line: %d, Too many parameters.",lineNum);
+                return 1;
+            }if(!variables.count(params)){
+                printf("Error on Line: %d, Undefined variable: %s.\n",lineNum, params);
+                return 1;
+            }
+            theStack.push(variables[params]);
             break;
-        case 7564403:
-            // sls (make string list)
+        }
+        // pop (pop from theStack)
+        case 7368560:{
             break;
-        case 7564388:
-            // dls (make double list)
+        }
+        // top (read the top of theStack)
+        case 0000:{
             break;
-        case 7564406:
-            // vls (make variable list)
+        }
+        // clr (clear theStack)
+        case 00001:{
+            while (!theStack.empty())
+                theStack.pop();
             break;
-        case 7368560:
-            // pop (pop from list)
-            break;
-        case 7632240:
-            // put (push to list)
-            break;
+        }
+
         case 7890025:
-            // idx (get element ad index)
+            // idx (get element at index of string)
             break;
         case 7234924:
-            // len (get length of list or string)
+            // len (get length of string)
             break;
         case 7103844:{
             // del (delete variable)
