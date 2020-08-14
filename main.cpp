@@ -15,6 +15,7 @@
 #include <exception>
 #include <cfenv>
 #include <stack>
+#include <time.h>
 
 #define CHAR_SIZE sizeof(char)
 
@@ -145,7 +146,7 @@ int runCode(char* codeIn){
                 printf("Error on Line: %d, Invalid number of parameters: %s\n",lineNum, params);
                 return 1;
             }if(variables.count(inputs[0])){
-                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << std::endl;
+                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << '\n';
                 return 1;
             }if(undeclared.count(inputs[0])){
                 switch(undeclared[inputs[0]]){
@@ -157,7 +158,7 @@ int runCode(char* codeIn){
                 }case 1:{
                     int userIn;
                     if(scanf("%d", &userIn)<0){
-                        printf("Error on Line: %d, Invalid user input for type int",lineNum);
+                        printf("Error on Line: %d, Invalid user input for type int.\n",lineNum);
                         return 1;
                     }
                     variables[inputs[0]] = userIn;
@@ -165,7 +166,7 @@ int runCode(char* codeIn){
                 }case 2:
                     double userIn;
                     if(scanf("%lf", &userIn)<0){
-                        printf("Error on Line: %d, Invalid user input for type double",lineNum);
+                        printf("Error on Line: %d, Invalid user input for type double.\n",lineNum);
                         return 1;
                     }
                     variables[inputs[0]] = userIn;
@@ -181,7 +182,28 @@ int runCode(char* codeIn){
         }
         // sec (seconds)
         case 6514035:{
-            break;
+            char* index = strchr(params,',');
+            if(index != NULL){
+                printf("Error on Line: %d, Too many parameters.\n",lineNum);
+                return 1;
+            }if(variables.count(params)){
+                printf("Error on Line: %d, Variable already in use: %s\n",lineNum, params);
+                return 1;
+            }
+            if(undeclared.count(params)){
+                switch(undeclared[params]){
+                case 0:
+                    printf("Error on Line: %d, cannot store time into string\n",lineNum);
+                    return 1;
+                case 1:
+                    variables[params] = (int)time(NULL);
+                    break;
+                case 2:
+                    variables[params] = (double)time(NULL);
+                }
+            }else{
+                variables[params] = time(NULL);
+            }
         }
         // add (addition)
         case 6579297:{
@@ -192,14 +214,14 @@ int runCode(char* codeIn){
                 printf("Error on Line: %d, Invalid number of parameters: %s\n",lineNum, params);
                 return 1;
             }if(variables.count(inputs[0])){
-                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << std::endl;
+                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << '\n';
                 return 1;
             }
             double a=0, b = 0;
             if(variables.count(inputs[1])){
                 switch(variables[inputs[1]].which()){
                 case 0:
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << std::endl;
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << '\n';
                     return 1;
                 case 1:
                     a = boost::get<int>(variables[inputs[1]]);
@@ -211,13 +233,13 @@ int runCode(char* codeIn){
                 try{
                     a = std::stod(inputs[1]);
                 }catch(std::exception& e){
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << std::endl;
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << '\n';
                     return 1;
                 }
             }if(variables.count(inputs[2])){
                 switch(variables[inputs[2]].which()){
                 case 0:
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << '\n';
                     return 1;
                 case 1:
                     b = boost::get<int>(variables[inputs[2]]);
@@ -229,7 +251,7 @@ int runCode(char* codeIn){
                 try{
                     b = std::stod(inputs[2]);
                 }catch(std::exception& e){
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << '\n';
                     return 1;
                 }
             }
@@ -237,7 +259,7 @@ int runCode(char* codeIn){
             if(undeclared.count(inputs[0])){
                 switch(undeclared[inputs[0]]){
                 case 0:
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << '\n';
                     return 1;
                 case 1:
                     variables[inputs[0]] = (int)(a+b);
@@ -261,14 +283,14 @@ int runCode(char* codeIn){
                 printf("Error on Line: %d, Invalid number of parameters: %s\n",lineNum, params);
                 return 1;
             }if(variables.count(inputs[0])){
-                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << std::endl;
+                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << '\n';
                 return 1;
             }
             double a=0, b = 0;
             if(variables.count(inputs[1])){
                 switch(variables[inputs[1]].which()){
                 case 0:
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << std::endl;
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << '\n';
                     return 1;
                 case 1:
                     a = boost::get<int>(variables[inputs[1]]);
@@ -280,13 +302,13 @@ int runCode(char* codeIn){
                 try{
                     a = std::stod(inputs[1]);
                 }catch(std::exception& e){
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << std::endl;
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << '\n';
                     return 1;
                 }
             }if(variables.count(inputs[2])){
                 switch(variables[inputs[2]].which()){
                 case 0:
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << '\n';
                     return 1;
                 case 1:
                     b = boost::get<int>(variables[inputs[2]]);
@@ -298,7 +320,7 @@ int runCode(char* codeIn){
                 try{
                     b = std::stod(inputs[2]);
                 }catch(std::exception& e){
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << '\n';
                     return 1;
                 }
             }
@@ -306,7 +328,7 @@ int runCode(char* codeIn){
             if(undeclared.count(inputs[0])){
                 switch(undeclared[inputs[0]]){
                 case 0:
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << '\n';
                     return 1;
                 case 1:
                     variables[inputs[0]] = (int)(a-b);
@@ -330,14 +352,14 @@ int runCode(char* codeIn){
                 printf("Error on Line: %d, Invalid number of parameters: %s\n",lineNum, params);
                 return 1;
             }if(variables.count(inputs[0])){
-                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << std::endl;
+                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << '\n';
                 return 1;
             }
             double a=0, b = 0;
             if(variables.count(inputs[1])){
                 switch(variables[inputs[1]].which()){
                 case 0:
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << std::endl;
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << '\n';
                     return 1;
                 case 1:
                     a = boost::get<int>(variables[inputs[1]]);
@@ -349,13 +371,13 @@ int runCode(char* codeIn){
                 try{
                     a = std::stod(inputs[1]);
                 }catch(std::exception& e){
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << std::endl;
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << '\n';
                     return 1;
                 }
             }if(variables.count(inputs[2])){
                 switch(variables[inputs[2]].which()){
                 case 0:
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << '\n';
                     return 1;
                 case 1:
                     b = boost::get<int>(variables[inputs[2]]);
@@ -367,7 +389,7 @@ int runCode(char* codeIn){
                 try{
                     b = std::stod(inputs[2]);
                 }catch(std::exception& e){
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << '\n';
                     return 1;
                 }
             }
@@ -375,7 +397,7 @@ int runCode(char* codeIn){
             if(undeclared.count(inputs[0])){
                 switch(undeclared[inputs[0]]){
                 case 0:
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << '\n';
                     return 1;
                 case 1:
                     variables[inputs[0]] = (int)(a*b);
@@ -399,14 +421,14 @@ int runCode(char* codeIn){
                 printf("Error on Line: %d, Invalid number of parameters: %s\n",lineNum, params);
                 return 1;
             }if(variables.count(inputs[0])){
-                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << std::endl;
+                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << '\n';
                 return 1;
             }
             double a=0, b = 0;
             if(variables.count(inputs[1])){
                 switch(variables[inputs[1]].which()){
                 case 0:
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << std::endl;
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << '\n';
                     return 1;
                 case 1:
                     a = boost::get<int>(variables[inputs[1]]);
@@ -418,13 +440,13 @@ int runCode(char* codeIn){
                 try{
                     a = std::stod(inputs[1]);
                 }catch(std::exception& e){
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << std::endl;
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << '\n';
                     return 1;
                 }
             }if(variables.count(inputs[2])){
                 switch(variables[inputs[2]].which()){
                 case 0:
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << '\n';
                     return 1;
                 case 1:
                     b = boost::get<int>(variables[inputs[2]]);
@@ -436,7 +458,7 @@ int runCode(char* codeIn){
                 try{
                     b = std::stod(inputs[2]);
                 }catch(std::exception& e){
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << '\n';
                     return 1;
                 }
             }
@@ -444,7 +466,7 @@ int runCode(char* codeIn){
             if(undeclared.count(inputs[0])){
                 switch(undeclared[inputs[0]]){
                 case 0:
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << '\n';
                     return 1;
                 case 1:
                     variables[inputs[0]] = (int)(a/b);
@@ -468,14 +490,14 @@ int runCode(char* codeIn){
                 printf("Error on Line: %d, Invalid number of parameters: %s\n",lineNum, params);
                 return 1;
             }if(variables.count(inputs[0])){
-                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << std::endl;
+                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << '\n';
                 return 1;
             }
             double a=0, b = 0;
             if(variables.count(inputs[1])){
                 switch(variables[inputs[1]].which()){
                 case 0:
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << std::endl;
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << '\n';
                     return 1;
                 case 1:
                     a = boost::get<int>(variables[inputs[1]]);
@@ -487,13 +509,13 @@ int runCode(char* codeIn){
                 try{
                     a = std::stod(inputs[1]);
                 }catch(std::exception& e){
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << std::endl;
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[1] << '\n';
                     return 1;
                 }
             }if(variables.count(inputs[2])){
                 switch(variables[inputs[2]].which()){
                 case 0:
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << '\n';
                     return 1;
                 case 1:
                     b = boost::get<int>(variables[inputs[2]]);
@@ -505,7 +527,7 @@ int runCode(char* codeIn){
                 try{
                     b = std::stod(inputs[2]);
                 }catch(std::exception& e){
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << '\n';
                     return 1;
                 }
             }
@@ -513,7 +535,7 @@ int runCode(char* codeIn){
             if(undeclared.count(inputs[0])){
                 switch(undeclared[inputs[0]]){
                 case 0:
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << std::endl;
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << '\n';
                     return 1;
                 case 1:
                     std::feclearexcept(FE_ALL_EXCEPT);
@@ -540,7 +562,6 @@ int runCode(char* codeIn){
                     return 1;
                 }
             }
-
             break;   
         }
         // int (make int)
@@ -549,8 +570,8 @@ int runCode(char* codeIn){
             if(index != NULL){
                 char varName[index-params];
                 strncpy(varName, params,index-params);
-                if(variables.count[varName]){
-                    printf("Error on Line: %d, Variable already in use: %s\n",lineNum, varName+1);
+                if(variables.count(varName)){
+                    printf("Error on Line: %d, Variable already in use: %s\n",lineNum, varName);
                     return 1;
                 }
                 int value;
@@ -564,10 +585,12 @@ int runCode(char* codeIn){
                 if(undeclared.count(varName)){
                     undeclared.erase(varName);
                 }
-            }else{
+            }else if(!variables.count(params)){
                 undeclared[params] = 1;
+            }else{
+                printf("Error on Line: %d, Variable already in use: %s\n",lineNum, params);
+                return 1;
             }
-            
             break;
         }
         // str (make string)
@@ -576,8 +599,8 @@ int runCode(char* codeIn){
             if(index != NULL){
                 char varName[index-params];
                 strncpy(varName, params,index-params);
-                if(variables.count[varName]){
-                    printf("Error on Line: %d, Variable already in use: %s\n",lineNum, varName+1);
+                if(variables.count(varName)){
+                    printf("Error on Line: %d, Variable already in use: %s\n",lineNum, varName);
                     return 1;
                 }
                 std::string value = index+1;
@@ -586,10 +609,12 @@ int runCode(char* codeIn){
                 if(undeclared.count(varName)){
                     undeclared.erase(varName);
                 }
-            }else{
+            }else if(!variables.count(params)){
                 undeclared[params] = 0;
+            }else{
+                printf("Error on Line: %d, Variable already in use: %s\n",lineNum, params);
+                return 1;
             }
-
             break;
         }
         // dbl (make double)
@@ -598,8 +623,8 @@ int runCode(char* codeIn){
             if(index != NULL){
                 char varName[index-params];
                 strncpy(varName, params,index-params);
-                if(variables.count[varName]){
-                    printf("Error on Line: %d, Variable already in use: %s\n",lineNum, varName+1);
+                if(variables.count(varName)){
+                    printf("Error on Line: %d, Variable already in use: %s\n",lineNum, varName);
                     return 1;
                 }
                 double value;
@@ -613,16 +638,18 @@ int runCode(char* codeIn){
                 if(undeclared.count(varName)){
                     undeclared.erase(varName);
                 }
-            }else{
+            }else if(!variables.count(params)){
                 undeclared[params] = 2;
+            }else{
+                printf("Error on Line: %d, Variable already in use: %s\n",lineNum, params);
+                return 1;
             }
-
             break;
         }
         // put (push to theStack)
         case 7632240:{
             char* index = strchr(params,',');
-            if(index == NULL){
+            if(index != NULL){
                 printf("Error on Line: %d, Too many parameters.",lineNum);
                 return 1;
             }if(!variables.count(params)){
@@ -634,10 +661,56 @@ int runCode(char* codeIn){
         }
         // pop (pop from theStack)
         case 7368560:{
+            theStack.pop();
             break;
         }
         // top (read the top of theStack)
         case 0000:{
+            char* index = strchr(params,',');
+            if(index != NULL){
+                printf("Error on Line: %d, Too many parameters.",lineNum);
+                return 1;
+            }if(variables.count(params)){
+                printf("Error on Line: %d, Variable already in use: %s\n",lineNum, params);
+                return 1;
+            }
+            if(undeclared.count(params)){
+                switch(undeclared[params]){
+                case 0:
+                    if(theStack.top().which() != 0){
+                        printf("Error on Line: %d, Invalid variable type: %s\n",lineNum, params);
+                        return 1;
+                    }
+                    variables[params] = theStack.top();
+                    break;
+                case 1:
+                    switch(theStack.top().which()){
+                    case 0:
+                        printf("Error on Line: %d, Invalid variable type: %s\n",lineNum, params);
+                        return 1;
+                    case 1:
+                        variables[params] = theStack.top();
+                        break;
+                    case 2:
+                        variables[params] = (int)boost::get<double>(theStack.top());
+                    }
+                    break;
+                case 2:
+                    switch(theStack.top().which()){
+                    case 0:
+                        printf("Error on Line: %d, Invalid variable type: %s\n",lineNum, params);
+                        return 1;
+                    case 1:
+                        variables[params] = (double)boost::get<int>(theStack.top());
+                        break;
+                    case 2:
+                        variables[params] = theStack.top();
+                    }
+                undeclared.erase(params);
+                }
+            }
+            variables[params] = theStack.top();
+            
             break;
         }
         // clr (clear theStack)
@@ -646,16 +719,16 @@ int runCode(char* codeIn){
                 theStack.pop();
             break;
         }
-
-        case 7890025:
-            // idx (get element at index of string)
+        // idx (get element at index of string)
+        case 7890025:{
             break;
-        case 7234924:
-            // len (get length of string)
+        }
+        // len (get length of string)
+        case 7234924:{
             break;
+        }
+        // del (delete variable)
         case 7103844:{
-            // del (delete variable)
-            
             // tokenize the params and store into a vector
             std::vector<std::string> inputs;
             boost::split(inputs, params, [](char c){return c == ',';});
@@ -664,9 +737,9 @@ int runCode(char* codeIn){
                 variables.erase(param);
             
             break;
-        }case 7102838:{
-            // val (check if variable available)
-
+        }
+        // val (check if variable available)
+        case 7102838:{
             // tokenize the params and store into a vector
             std::vector<std::string> inputs;
             boost::split(inputs, params, [](char c){return c == ',';});
@@ -675,7 +748,7 @@ int runCode(char* codeIn){
                 printf("Error on Line: %d, Invalid number of parameters: %s\n",lineNum, params);
                 return 1;
             }if(variables.count(inputs[0])){
-                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << std::endl;
+                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << '\n';
                 return 1;
             }
             if(undeclared.count(inputs[0])){
@@ -696,20 +769,20 @@ int runCode(char* codeIn){
         }case 7103858:
             // rel (perform boolean operation)
             break;
-        case 7500389:
-            // err (throw manual error)
+        // err (throw manual error)
+        case 7500389:{
+            printf("Error on Line: %d, User Error: %s\n",lineNum, params);
+            return 1;
             break;
+        }
+        // com (comment, do nothing)
         case 7171939:
-            // com (comment, do nothing)
-            break;
-        case 6711666:
-            // rif (run function if true)
             break;
         case 7239026:
             // run (run function)
             break;
         default:
-            printf("Invalid command found on line %d: %s\n",lineNum,line);
+            printf("Error on Line: %d, Invalid Command: %s\n",lineNum,line);
             return 1;
         }
         // Move iterator to next line

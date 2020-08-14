@@ -1,7 +1,6 @@
 int c
 inp c
 out "C is: ", c, \n
-int c, 7
 dbl d, 3.4
 add e, d, c
 mod f, d, c
