@@ -202,8 +202,9 @@ int runCode(char* codeIn){
                     variables[params] = (double)time(NULL);
                 }
             }else{
-                variables[params] = time(NULL);
+                variables[params] = (double)time(NULL);
             }
+            break;
         }
         // add (addition)
         case 6579297:{
