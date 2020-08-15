@@ -106,12 +106,49 @@ int runCode(char* codeIn){
         // printf("Command: %s, Params: %s\n",command,params);
 
         switch(*(int*)command){
-        // imp (import)
-        case 7368041:{
+        // run (run function)
+        case 7239026:{
+            
             break;
         }
-        //ias (import as)
+        // imp (import)
+        case 7368041:{
+
+            break;
+        }
+        // ias (import as)
         case 7561577:{
+
+            break;
+        }
+        // and (logic and)
+        case 6581857:{
+
+            break;
+        }
+        // orr (logic or)
+        case 0000000:{
+
+            break;
+        }
+        // gth (greater than)
+        case 6845543:{
+
+            break;
+        }
+        // lth (less than)
+        case 6845548:{
+
+            break;
+        }
+        // gte (greater than or equal)
+        case 6648935:{
+
+            break;
+        }
+        // lte (less than or equal)
+        case 6648940:{
+
             break;
         }
         // out (output)
@@ -666,7 +703,7 @@ int runCode(char* codeIn){
             break;
         }
         // top (read the top of theStack)
-        case 0000:{
+        case 7368564:{
             char* index = strchr(params,',');
             if(index != NULL){
                 printf("Error on Line: %d, Too many parameters.",lineNum);
@@ -715,17 +752,97 @@ int runCode(char* codeIn){
             break;
         }
         // clr (clear theStack)
-        case 00001:{
+        case 7498851:{
             while (!theStack.empty())
                 theStack.pop();
             break;
         }
         // idx (get element at index of string)
         case 7890025:{
+            // tokenize the params and store into a vector
+            std::vector<std::string> inputs;
+            boost::split(inputs, params, [](char c){return c == ',';});
+
+            if(inputs.size() != 3){
+                printf("Error on Line: %d, Invalid number of parameters: %s\n",lineNum, params);
+                return 1;
+            }if(variables.count(inputs[0])){
+                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << '\n';
+                return 1;
+            }if(!variables.count(inputs[1]) || variables[inputs[1]].which() != 0){
+                std::cout << "Error on Line: " << lineNum << ", No string named: " << inputs[1] << '\n';
+                return 1;
+            }
+            int index;
+            try{
+                index = std::stoi(inputs[2]);
+            }catch(std::exception& e){
+                if(!variables.count(inputs[2]) || variables[inputs[2]].which() != 1){
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for index: " << inputs[2] << '\n';
+                    return 1;
+                }
+                index = boost::get<int>(variables[inputs[2]]);
+            }
+            std::string text = boost::get<std::string>(variables[inputs[1]]);
+            if(index < 0 || index >= text.length()){
+                printf("Error on Line: %d, Index out of range: %d\n",lineNum, index);
+                return 1;
+            }
+            if(undeclared.count(inputs[0])){
+                switch(undeclared[inputs[0]]){
+                case 0:{
+                    std::string s(1,text[index]);
+                    variables[inputs[0]] = s;
+                    break;
+                }
+                case 1:
+                    variables[inputs[0]] = (int)text[index];
+                    break;
+                case 2:
+                    variables[inputs[0]] = (double)text[index];
+                    break;
+                undeclared.erase(inputs[0]);
+                }
+            }else{
+                std::string s(1,text[index]);
+                variables[inputs[0]] = s;
+            }
+
             break;
         }
         // len (get length of string)
         case 7234924:{
+            // tokenize the params and store into a vector
+            std::vector<std::string> inputs;
+            boost::split(inputs, params, [](char c){return c == ',';});
+
+            if(inputs.size() != 2){
+                printf("Error on Line: %d, Invalid number of parameters: %s\n",lineNum, params);
+                return 1;
+            }if(variables.count(inputs[0])){
+                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << '\n';
+                return 1;
+            }if(!variables.count(inputs[1]) || variables[inputs[1]].which() != 0){
+                std::cout << "Error on Line: " << lineNum << ", No string named: " << inputs[1] << '\n';
+                return 1;
+            }
+            if(undeclared.count(inputs[0])){
+                switch(undeclared[inputs[0]]){
+                case 0:
+                    printf("Error on Line: %d, cannot store number into string\n",lineNum);
+                    return 1;
+                case 1:
+                    variables[inputs[0]] = (int)boost::get<std::string>(variables[inputs[1]]).length();
+                    break;
+                case 2:
+                    variables[inputs[0]] = (double)boost::get<std::string>(variables[inputs[1]]).length();
+                    break;
+                undeclared.erase(inputs[0]);
+                }
+            }else{
+                variables[inputs[0]] = (int)boost::get<std::string>(variables[inputs[1]]).length();
+            }
+
             break;
         }
         // del (delete variable)
@@ -758,8 +875,10 @@ int runCode(char* codeIn){
                     printf("Error on Line: %d, cannot store bool into string\n",lineNum);
                     return 1;
                 case 1:
-                case 2:
                     variables[inputs[0]] = (int)variables.count(inputs[1]);
+                    break;
+                case 2:
+                    variables[inputs[0]] = (double)variables.count(inputs[1]);
                 undeclared.erase(inputs[0]);
                 }
             }else{
@@ -767,9 +886,7 @@ int runCode(char* codeIn){
             }
 
             break;
-        }case 7103858:
-            // rel (perform boolean operation)
-            break;
+        }
         // err (throw manual error)
         case 7500389:{
             printf("Error on Line: %d, User Error: %s\n",lineNum, params);
@@ -779,9 +896,7 @@ int runCode(char* codeIn){
         // com (comment, do nothing)
         case 7171939:
             break;
-        case 7239026:
-            // run (run function)
-            break;
+        // default, no valid command found
         default:
             printf("Error on Line: %d, Invalid Command: %s\n",lineNum,line);
             return 1;
