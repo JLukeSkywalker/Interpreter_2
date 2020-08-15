@@ -131,9 +131,65 @@ int runCode(char* codeIn){
 
             break;
         }
+        // cmp (compare/test equality)
+        case 7368035:{
+
+            break;
+        }
         // gth (greater than)
         case 6845543:{
+            // tokenize the params and store into a vector
+            std::vector<std::string> inputs;
+            boost::split(inputs, params, [](char c){return c == ',';});
 
+            if(inputs.size() != 3){
+                printf("Error on Line: %d, Invalid number of parameters: %s\n",lineNum, params);
+                return 1;
+            }if(variables.count(inputs[0])){
+                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << '\n';
+                return 1;
+            }if(undeclared.count(inputs[0]) && undeclared[inputs[0]]==0){
+                printf("Error on Line: %d, cannot store boolean into string\n",lineNum);
+                return 1;
+            }if(!variables.count(inputs[1]) || variables[inputs[1]].which() == 0){
+                std::cout << "Error on Line: " << lineNum << ", No numeric variable named: " << inputs[1] << '\n';
+                return 1;
+            }
+            double value;
+            try{
+                value = std::stod(inputs[2]);
+            }catch(std::exception& e){
+                if(!variables.count(inputs[2]) || variables[inputs[2]].which() == 0){
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for index: " << inputs[2] << '\n';
+                    return 1;
+                }
+                switch(variables[inputs[2]].which()){
+                    case 1:
+                        value = boost::get<int>(variables[inputs[2]]);
+                        break;
+                    case 2:
+                        value = boost::get<double>(variables[inputs[2]]);
+                }
+            }
+            double result;
+            switch(variables[inputs[1]].which()){
+                case 1:
+                    result = boost::get<int>(variables[inputs[1]]) > value;
+                    break;
+                case 2:
+                    result = boost::get<double>(variables[inputs[1]]) > value;
+            }
+            if(undeclared.count(inputs[0])){
+                switch(undeclared[inputs[0]]){
+                case 1:
+                    variables[params] = (int)result;
+                    break;
+                case 2:
+                    variables[params] = (double)result;
+                }
+            }else{
+                variables[params] = (int)result;
+            }
             break;
         }
         // lth (less than)
