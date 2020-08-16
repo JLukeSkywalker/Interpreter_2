@@ -121,6 +121,47 @@ int runCode(char* codeIn){
 
             break;
         }
+        // not (logic not)
+        case 7630702:{
+            // tokenize the params and store into a vector
+            std::vector<std::string> inputs;
+            boost::split(inputs, params, [](char c){return c == ',';});
+
+            if(inputs.size() != 2){
+                printf("Error on Line: %d, Invalid number of parameters: %s\n",lineNum, params);
+                return 1;
+            }if(variables.count(inputs[0])){
+                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << '\n';
+                return 1;
+            }if(undeclared.count(inputs[0]) && undeclared[inputs[0]]==0){
+                printf("Error on Line: %d, cannot store boolean into string\n",lineNum);
+                return 1;
+            }if(!variables.count(inputs[1]) || variables[inputs[1]].which() == 0){
+                std::cout << "Error on Line: " << lineNum << ", No numeric variable named: " << inputs[1] << '\n';
+                return 1;
+            }
+            double value;
+            switch(variables[inputs[1]].which()){
+            case 1:
+                value = boost::get<int>(variables[inputs[1]]);
+                break;
+            case 2:
+                value = boost::get<double>(variables[inputs[1]]);
+            }
+            
+            if(undeclared.count(inputs[0])){
+                switch(undeclared[inputs[0]]){
+                case 1:
+                    variables[inputs[0]] = (int)!value;
+                    break;
+                case 2:
+                    variables[inputs[0]] = (double)!value;
+                }
+            }else{
+                variables[inputs[0]] = (int)!value;
+            }
+            break;
+        }
         // and (logic and)
         case 6581857:{
             // tokenize the params and store into a vector
