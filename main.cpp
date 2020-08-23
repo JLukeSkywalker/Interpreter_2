@@ -88,17 +88,21 @@ int runCode(char* codeIn){
     // Create something to store all variables
 
     // Copy over the inputted code into new array to not mutate the old one
-    char runningCode[strlen(codeIn)];
-    strcpy(runningCode,codeIn);
+    std::string runningCode(codeIn);
 
     // Loop through each line of the new changeable array
     int lineNum = 0;
-    int charactersRead = 0;
-    // Use strtok as an iterator for each line
-    char *line = strtok(runningCode, "\n");
-    while(line != NULL){
+    
+    std::vector<std::string> lines;
+    boost::split(lines, runningCode, [](char c){return c == '\n';});
+
+    int lastLine = lines.size();
+
+    while(lineNum < lastLine){
+        char line[lines[lineNum].length()+1];
+        strcpy(line, lines[lineNum].c_str());
+
         printf("Line %d: %s\n",++lineNum,line);
-        charactersRead += strlen(line);
         char *command = (char*)calloc(3, CHAR_SIZE);
         char *params = (char*)calloc(strlen(line)-3, CHAR_SIZE);
         strcpy(params,line+3);
@@ -1321,8 +1325,6 @@ int runCode(char* codeIn){
             printf("Error on Line: %d, Invalid Command: %s\n",lineNum,line);
             return 1;
         }
-        // Move iterator to next line
-        line=strtok(NULL,"\n");
     }// END WHILE
     return 0;
 }// END FUNCTION runCode
