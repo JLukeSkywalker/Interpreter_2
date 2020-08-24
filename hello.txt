@@ -1,7 +1,7 @@
-dbl c
+int c
 inp c
-out c
-dbl e, 1
-int d
-and d, c, e
-out d
+
+for c, 1
+    out "value: ",c,"\n"
+
+out "OVER!\n"
