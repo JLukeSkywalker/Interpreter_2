@@ -1,3 +1,4 @@
+out "Give value for iterations\n> "
 int c
 inp c
 

@@ -1,9 +1,19 @@
 /*
+ *  Project:            Interpreter
+ *  Associated Files:   example.txt, LICENSE.txt
+ *  Date Created:       8/10/2020 (John Lukowski https://github.com/JLukeSkywalker)
+ *  License:            CC BY-NC 4.0  (https://creativecommons.org/licenses/by-nc/4.0/)
+ *
+ *  Purpose:            Interpret the given file when run.
+ */
+
+/*
     a lot of the code in add/sub/mul/div/mod is the same,
     probs a way to condense/combine
 
 */
 
+// Packages used
 #include <stdio.h>
 #include <string.h>
 #include <boost/variant.hpp>
@@ -17,8 +27,8 @@
 #include <stack>
 #include <time.h>
 
+// Globals
 #define CHAR_SIZE sizeof(char)
-
 std::stack<std::unordered_map<std::string, boost::variant<std::string,int,double>>> variables;
 std::unordered_map<std::string, int> undeclared;
 std::unordered_map<std::string, int> functions;
@@ -34,26 +44,40 @@ std::stack<int> forLoopLines;
 char* readFile(char* fileName);
 int runCode(char* codeIn);
 
+/*
+ * Function:    main
+ * Params:      number of argumants passed by command line
+ * Returns:     0 if successful, 1 if an error was found in the code
+ */
 int main(int numArgs, char* args[]) {
     // Make sure only a fileName was given from command line
     if(numArgs < 2 || numArgs > 2){
-        //printf("Invalid or no filename given\n");
-        //return 1;
-        args[1] = "hello.txt";
+        printf("Invalid or no filename given\n");
+        return 1;
     }
+
+    // Read in full file
     char* codeIn = readFile(args[1]);
     if(codeIn == NULL){
         printf("Unable to read file: %s\n",args[1]);
         return 1;
     }
 
+    // Create base holder for variables
     std::unordered_map<std::string, boost::variant<std::string,int,double>> globals;
     variables.push(globals);
 
+    // Run the code from the file
     int codeRan = runCode(codeIn);
     return codeRan==0 ? 0:codeRan;
 }// END FUNCTION main
 
+
+/*
+ * Function:    readFile
+ * Params:      char array of entire file
+ * Returns:     NULL or char array of file stripped of spaces
+ */
 char* readFile(char* fileName){
     FILE *fileData;
     long byteSize;
@@ -61,6 +85,7 @@ char* readFile(char* fileName){
     // read in entire file
     fileData = fopen(fileName,"r");
     if(fileData == NULL){
+        printf("Error in File: empty file\n");
         return NULL;
     }
     fseek(fileData,0L,SEEK_END);  // Find the end of the file
@@ -69,6 +94,7 @@ char* readFile(char* fileName){
 
     char* codeIn = (char*)calloc(byteSize,CHAR_SIZE);
     if(codeIn == NULL){
+        printf("Error in File: unable to read file\n");
         return NULL;
     }
 
@@ -85,7 +111,7 @@ char* readFile(char* fileName){
             codeIn[spaces++] = codeIn[i];
     }
     if(openQuote){
-        printf("Unmatched Quote\n");
+        printf("Error in File: Unmatched Quote\n");
         return NULL;
     }
     codeIn[spaces] = '\0';
@@ -93,27 +119,31 @@ char* readFile(char* fileName){
     return codeIn;
 }// END FUNCTION readFile
 
+/*
+ * Function:    runCode
+ * Params:      char array of the read in code
+ * Returns:     0 if successful, 1 if an error was found in the code
+ */
 int runCode(char* codeIn){
-    // Create something to store all variables
-
     // Copy over the inputted code into new array to not mutate the old one
     std::string runningCode(codeIn);
 
-    // Loop through each line of the new changeable array
+    // Loop through each line of the new changeable array with a lineNum iterator
     int lineNum = 0;
-    
     std::vector<std::string> lines;
     boost::split(lines, runningCode, [](char c){return c == '\n';});
 
     int lastLine = lines.size();
-
     while(lineNum < lastLine){
+        // Handle for loop jumps of the lineNum iterator
         if(forLoopIterations.size() > 0){
+            // Jump to top
             if(forLoopIterations.size() > 0 && forLoopIterations.top() > 0)
                 if((lineNum-forLoopStart.top()) == forLoopLines.top()){
                     lineNum = forLoopStart.top();
                     forLoopIterations.top()--;
                 }
+            // End innermost for loop
             if(forLoopIterations.top() == 0){
                 lineNum = forLoopStart.top() + forLoopLines.top();
                 forLoopIterations.pop();
@@ -127,9 +157,10 @@ int runCode(char* codeIn){
             lineNum++;
             continue;
         }
+
+        // Extract command and parameters from the line
         char line[lines[lineNum].length()+1];
         strcpy(line, lines[lineNum++].c_str());
-
         //printf("Line %d: %s\n",++lineNum,line);
         char *command = (char*)calloc(3, CHAR_SIZE);
         char *params = (char*)calloc(strlen(line)-3, CHAR_SIZE);
@@ -1510,7 +1541,7 @@ int runCode(char* codeIn){
         default:
             printf("Error on Line: %d, Invalid Command: %s\n",lineNum,line);
             return 1;
-        }
-    }// END WHILE
+        }// END SWITCH command handling
+    }// END WHILE run all lines
     return 0;
 }// END FUNCTION runCode
