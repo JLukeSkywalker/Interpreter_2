@@ -21,7 +21,7 @@ So, every command, no matter what it is is 3 letters followed by comma seperated
 
 Below is a list of available commands and what they do / how to use them
 
-Basic Commands:
+#### Basic Commands:
 com (comment):          any text after the com will not be read by the interpreter
 int (create integer):   in the format 'int VARNAME' or 'int VARNAME,VALUE', created an integer with name VARNAME and optional value VALUE
 dbl (create double):    in the format 'dbl VARNAME' or 'dbl VARNAME,VALUE', created a double with name VARNAME and optional value VALUE
@@ -57,7 +57,7 @@ not (logical not):      in the format 'not VARNAME,VARNAME', performs a ! on the
 del (delete variable):  in the format 'del VARNAME,VARNAME,...' deletes 1 or more variables from the current scope, will not error if they are already not declared
 val (variable check):   in the format 'val VARNAME,VARNAME', checks to see if the second variable has a value in the current scope (1 or 0 stored into first VARNAME)
 
-Advanced commands:
+#### Advanced commands:
 for (for loop):         in the format 'for VALUE,VALUE' where either value could be a numeric variable. The first value is the number of iterations, the second is the
 &nbsp&nbsp&nbsp&nbsp    number of lines to include in the loop. This can in effect be used as an if, where number of iterations is a 0 or a 1 (true/false)
 fun (declare function): in the format 'fun FUNCNAME,VARNAME,VARNAME,...', where the FUNCNAME given is the name of the function, the first variable given is where it will
@@ -73,11 +73,12 @@ put (add to stack):     in the format 'put VARNAME', appends the value of the va
 pop (pops stack):       in the format 'pop', removes the top value fo the stack
 top (reads stack):      in the format 'top VARNAME', reads the top of the stack's value into VARNAME. will default VARNAME to the correct type, otherwise could throw an error if different
 
-Future Plans:
+#### Future Plans:
 add in the ability to import functions from other files
 full file read/write
 add in string concatenation, probably just called cat (out currently accomplishes this, but doesnt store to a variable)
 optimize the speed of the interpreter
 add more in-depth error catching
+custom code highlighting
 command line input (line by line interpreter)
 impliment things based on user feedback
