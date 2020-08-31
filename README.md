@@ -1,4 +1,4 @@
-# Interpreter_2
+# Shoots
 Language Jam C++ Attempt
 
 This is a simple programming language meant to teach how to program
