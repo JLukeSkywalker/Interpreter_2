@@ -471,7 +471,7 @@ int runCode(char* codeIn){
                         value = std::stod(inputs[2]);
                     }catch(std::exception& e){
                         if(!variables.top().count(inputs[2])){
-                            std::cout << "Error on Line: " << lineNum << ", No numeric variable names: " << inputs[2] << '\n';
+                            std::cout << "Error on Line: " << lineNum << ", No numeric variable named: " << inputs[2] << '\n';
                             return 1;
                         }
                         switch(variables.top()[inputs[2]].which()){
@@ -491,7 +491,7 @@ int runCode(char* codeIn){
                         value = std::stod(inputs[2]);
                     }catch(std::exception& e){
                         if(!variables.top().count(inputs[2])){
-                            std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for index: " << inputs[2] << '\n';
+                            std::cout << "Error on Line: " << lineNum << ", No numeric variable named: " << inputs[2] << '\n';
                             return 1;
                         }
                         switch(variables.top()[inputs[2]].which()){
@@ -544,7 +544,7 @@ int runCode(char* codeIn){
                 value = std::stod(inputs[2]);
             }catch(std::exception& e){
                 if(!variables.top().count(inputs[2]) || variables.top()[inputs[2]].which() == 0){
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for index: " << inputs[2] << '\n';
+                    std::cout << "Error on Line: " << lineNum << ", No numeric variable named: " << inputs[2] << '\n';
                     return 1;
                 }
                 switch(variables.top()[inputs[2]].which()){
@@ -601,7 +601,7 @@ int runCode(char* codeIn){
                 value = std::stod(inputs[2]);
             }catch(std::exception& e){
                 if(!variables.top().count(inputs[2]) || variables.top()[inputs[2]].which() == 0){
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for index: " << inputs[2] << '\n';
+                    std::cout << "Error on Line: " << lineNum << ", No numeric variable named: " << inputs[2] << '\n';
                     return 1;
                 }
                 switch(variables.top()[inputs[2]].which()){
@@ -658,7 +658,7 @@ int runCode(char* codeIn){
                 value = std::stod(inputs[2]);
             }catch(std::exception& e){
                 if(!variables.top().count(inputs[2]) || variables.top()[inputs[2]].which() == 0){
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for index: " << inputs[2] << '\n';
+                    std::cout << "Error on Line: " << lineNum << ", No numeric variable named: " << inputs[2] << '\n';
                     return 1;
                 }
                 switch(variables.top()[inputs[2]].which()){
@@ -715,7 +715,7 @@ int runCode(char* codeIn){
                 value = std::stod(inputs[2]);
             }catch(std::exception& e){
                 if(!variables.top().count(inputs[2]) || variables.top()[inputs[2]].which() == 0){
-                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for index: " << inputs[2] << '\n';
+                    std::cout << "Error on Line: " << lineNum << ", No numeric variable named: " << inputs[2] << '\n';
                     return 1;
                 }
                 switch(variables.top()[inputs[2]].which()){
@@ -1499,14 +1499,14 @@ int runCode(char* codeIn){
                     printf("Error on Line: %d, cannot store bool into string\n",lineNum);
                     return 1;
                 case 1:
-                    variables.top()[inputs[0]] = (int)!variables.top().count(inputs[1]);
+                    variables.top()[inputs[0]] = (int)variables.top().count(inputs[1]);
                     break;
                 case 2:
-                    variables.top()[inputs[0]] = (double)!variables.top().count(inputs[1]);
+                    variables.top()[inputs[0]] = (double)variables.top().count(inputs[1]);
                 undeclared.erase(inputs[0]);
                 }
             }else{
-                variables.top()[inputs[0]] = (int)!variables.top().count(inputs[1]);
+                variables.top()[inputs[0]] = (int)variables.top().count(inputs[1]);
             }
 
             break;
