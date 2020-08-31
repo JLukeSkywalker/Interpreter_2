@@ -1,0 +1,23 @@
+com: example using recursive function and for loops for branching code and loops
+
+fun factorial, result, startNum
+    sub next, startNum, 1
+    gth test, next,1
+    for test, 2
+        run factorial, temp, next
+        mul result, startNum, temp
+    val isDeclared, result
+    for isDeclared, 1
+        cpy result, startNum
+ret
+
+out "How many factorials would you like to test?\n> "
+int a
+inp a
+for a, 6
+    out "\nWhat number would you like the factorial of?\n> "
+    int userIn
+    inp userIn
+    run factorial, answer, userIn
+    out "The factorial of ", userIn, " is ", answer, "\n"
+    del userIn, answer

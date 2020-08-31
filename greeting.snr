@@ -1,0 +1,12 @@
+com: sample function that greets the given name
+
+fun greet, returned, name
+    out "\nHello ", name, "!\n"
+    int returned, 0
+ret
+
+out "Welcome to Shoots 'n' Roots!\n"
+out "\nPlease enter your name:\n> "
+inp name
+run greet, a, name
+del a, name

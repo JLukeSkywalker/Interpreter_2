@@ -1,8 +1,0 @@
-out "Give value for iterations\n> "
-int c
-inp c
-
-for c, 1
-    out "value: ",c,"\n"
-
-out "OVER!\n"

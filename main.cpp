@@ -1,17 +1,11 @@
 /*
  *  Project:            Interpreter
- *  Associated Files:   example.txt, LICENSE.txt
+ *  Associated Files:   greeting.snr, example.snr, README.txt LICENSE.txt
  *  Date Created:       8/10/2020 (John Lukowski https://github.com/JLukeSkywalker)
  *  License:            CC BY-NC 4.0  (https://creativecommons.org/licenses/by-nc/4.0/)
  *
- *  Purpose:            Interpret the given file when run.
+ *  Purpose:            Interpret the given file when run in command line.
  */
-
-/*
-    a lot of the code in add/sub/mul/div/mod is the same,
-    probs a way to condense/combine
-
-*/
 
 // Packages used
 #include <stdio.h>
@@ -134,7 +128,7 @@ int runCode(char* codeIn){
     boost::split(lines, runningCode, [](char c){return c == '\n';});
 
     int lastLine = lines.size();
-    while(lineNum < lastLine){
+    while(lineNum < lastLine || forLoopIterations.size() > 0){
         // Handle for loop jumps of the lineNum iterator
         if(forLoopIterations.size() > 0){
             // Jump to top
@@ -293,16 +287,6 @@ int runCode(char* codeIn){
             }else{
                 variables.top()[returnVar] = result;
             }
-
-            break;
-        }
-        // imp (import)
-        case 7368041:{
-
-            break;
-        }
-        // ias (import as)
-        case 7561577:{
 
             break;
         }
@@ -1220,7 +1204,7 @@ int runCode(char* codeIn){
         case 7630441:{
             char* index = strchr(params,',');
             if(index != NULL){
-                char varName[index-params];
+                char* varName = (char*)calloc(index-params,CHAR_SIZE);
                 strncpy(varName, params,index-params);
                 if(variables.top().count(varName)){
                     printf("Error on Line: %d, Variable already in use: %s\n",lineNum, varName);
@@ -1249,7 +1233,7 @@ int runCode(char* codeIn){
         case 7500915:{
             char* index = strchr(params,',');
             if(index != NULL){
-                char varName[index-params];
+                char* varName = (char*)calloc(index-params,CHAR_SIZE);
                 strncpy(varName, params,index-params);
                 if(variables.top().count(varName)){
                     printf("Error on Line: %d, Variable already in use: %s\n",lineNum, varName);
@@ -1273,7 +1257,7 @@ int runCode(char* codeIn){
         case 7103076:{
             char* index = strchr(params,',');
             if(index != NULL){
-                char varName[index-params];
+                char* varName = (char*)calloc(index-params,CHAR_SIZE);
                 strncpy(varName, params,index-params);
                 if(variables.top().count(varName)){
                     printf("Error on Line: %d, Variable already in use: %s\n",lineNum, varName);
@@ -1467,7 +1451,6 @@ int runCode(char* codeIn){
             // loop through the vector of params
             for (auto & param : inputs)
                 variables.top().erase(param);
-            
             break;
         }
         // cpy (copy value into a different variable)
