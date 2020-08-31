@@ -1,4 +1,5 @@
 com: example using recursive function and for loops for branching code and loops
+com: all whitespace is just visual, interpreter ignores all of it unless in ""
 
 fun factorial, result, startNum
     sub next, startNum, 1

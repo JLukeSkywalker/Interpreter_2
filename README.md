@@ -79,4 +79,5 @@ full file read/write
 add in string concatenation, probably just called cat (out currently accomplishes this, but doesnt store to a variable)
 optimize the speed of the interpreter
 add more in-depth error catching
+command line input (line by line interpreter)
 impliment things based on user feedback
