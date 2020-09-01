@@ -61,6 +61,9 @@ int main(int numArgs, char* args[]) {
     std::unordered_map<std::string, boost::variant<std::string,int,double>> globals;
     variables.push(globals);
 
+    // Initialize random seed
+    srand(time(NULL));
+
     // Run the code from the file
     int codeRan = runCode(codeIn);
     return codeRan==0 ? 0:codeRan;
@@ -287,6 +290,49 @@ int runCode(char* codeIn){
             }else{
                 variables.top()[returnVar] = result;
             }
+
+            break;
+        }
+        // rnd (random int generator)
+        case 6581874:{
+            // tokenize the params and store into a vector
+            std::vector<std::string> inputs;
+            boost::split(inputs, params, [](char c){return c == ',';});
+            if(inputs.size() != 3){
+                printf("Error on Line: %d, Invalid number of parameters: %s\n",lineNum, params);
+                return 1;
+            }if(variables.top().count(inputs[0])){
+                std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << '\n';
+                return 1;
+            }if(undeclared.count(inputs[0]) && undeclared[inputs[0]] == 0){
+                std::cout << "Error on Line: " << lineNum << ", Cannot store int into string: " << inputs[0] << '\n';
+                return 1;
+            }
+            int lower;
+            try{
+                lower = std::stoi(inputs[1]);
+            }catch(std::exception& e){
+                if(!variables.top().count(inputs[1]) || variables.top()[inputs[1]].which() != 1){
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for int bound: " << inputs[1] << '\n';
+                    return 1;
+                }
+                lower = boost::get<int>(variables.top()[inputs[1]]);
+            }
+            int upper;
+            try{
+                upper = std::stoi(inputs[2]);
+            }catch(std::exception& e){
+                if(!variables.top().count(inputs[2]) || variables.top()[inputs[2]].which() != 1){
+                    std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for int bound: " << inputs[2] << '\n';
+                    return 1;
+                }
+                upper = boost::get<int>(variables.top()[inputs[2]]);
+            }
+
+            if(undeclared.count(inputs[0])){
+                undeclared.erase(inputs[0]);
+            }
+            variables.top()[inputs[0]] = (int)(rand()%(upper+1-lower)+lower);
 
             break;
         }
@@ -786,6 +832,7 @@ int runCode(char* codeIn){
                 switch(undeclared[inputs[0]]){
                 case 0:{
                     std::string userIn;
+                    std::cin.ignore();
                     std::getline(std::cin,userIn);
                     variables.top()[inputs[0]] = userIn;
                     break;
@@ -808,6 +855,7 @@ int runCode(char* codeIn){
                 undeclared.erase(inputs[0]);
             }else{
                 std::string userIn;
+                std::cin.ignore();
                 std::getline(std::cin,userIn);
                 variables.top()[inputs[0]] = userIn;
             }

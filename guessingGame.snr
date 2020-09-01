@@ -1,0 +1,36 @@
+fun takeTurn, correct, number
+    out "Guess a number between 1 and 10:\n> "
+    int guess
+    inp guess
+    cmp same, guess, number
+    gth high, guess, number
+    lth low, guess, number
+    for same, 2
+        out "Correct!!!\n"
+        int correct, 1
+    for high, 2
+        out "Too High\n"
+        int correct, 0
+    for low, 2
+        out "Too Low\n"
+        int correct, 0
+    not goAgain, correct
+    for goAgain, 1
+        run takeTurn, return, number
+ret
+
+fun runGame, return
+    rnd number, 1, 10
+    run takeTurn, correct, number
+    out "\nWould you like to play again? (yes/no)\n> "
+    str answer
+    inp answer
+    cmp playAgain, answer, "yes"
+    for playAgain, 1
+        run runGame, return
+    not exiting, playAgain
+    for exiting, 1
+        int return, 0
+ret
+
+run runGame, return

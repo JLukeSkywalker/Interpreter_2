@@ -56,6 +56,8 @@ orr (logical or):       same as and except performs an || operation. bacause var
 not (logical not):      in the format 'not VARNAME,VARNAME', performs a ! on the second numeric variable and stores it into the first
 del (delete variable):  in the format 'del VARNAME,VARNAME,...' deletes 1 or more variables from the current scope, will not error if they are already not declared
 val (variable check):   in the format 'val VARNAME,VARNAME', checks to see if the second variable has a value in the current scope (1 or 0 stored into first VARNAME)
+rnd (random int):       in the format 'rnd VARNAME,VALUE,VALUE', will store random int between the values(inclusive) into the named variable. Will be an int by default,
+&nbsp&nbsp&nbsp&nbsp    but could also be stored into an empty double. The values could also be replaced with int variables.
 
 #### Advanced commands:
 for (for loop):         in the format 'for VALUE,VALUE' where either value could be a numeric variable. The first value is the number of iterations, the second is the
