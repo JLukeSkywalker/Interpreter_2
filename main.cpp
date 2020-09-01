@@ -832,8 +832,8 @@ int runCode(char* codeIn){
                 switch(undeclared[inputs[0]]){
                 case 0:{
                     std::string userIn;
-                    std::cin.ignore();
                     std::getline(std::cin,userIn);
+                    if(userIn.length()==0) std::getline(std::cin,userIn);
                     variables.top()[inputs[0]] = userIn;
                     break;
                 }case 1:{
@@ -855,8 +855,8 @@ int runCode(char* codeIn){
                 undeclared.erase(inputs[0]);
             }else{
                 std::string userIn;
-                std::cin.ignore();
                 std::getline(std::cin,userIn);
+                if(userIn.length()==0) std::getline(std::cin,userIn);
                 variables.top()[inputs[0]] = userIn;
             }
 
