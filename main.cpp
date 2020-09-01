@@ -24,7 +24,7 @@
 // Globals
 #define CHAR_SIZE sizeof(char)
 std::stack<std::unordered_map<std::string, boost::variant<std::string,int,double>>> variables;
-std::unordered_map<std::string, int> undeclared;
+std::stack<std::unordered_map<std::string, int>> undeclared;
 std::unordered_map<std::string, int> functions;
 std::unordered_map<std::string, std::vector<std::string>> functionParams;
 std::stack<boost::variant<std::string,int,double>> theStack;
@@ -60,6 +60,8 @@ int main(int numArgs, char* args[]) {
     // Create base holder for variables
     std::unordered_map<std::string, boost::variant<std::string,int,double>> globals;
     variables.push(globals);
+    std::unordered_map<std::string, int> globalUndeclared;
+    undeclared.push(globalUndeclared);
 
     // Initialize random seed
     srand(time(NULL));
@@ -241,6 +243,7 @@ int runCode(char* codeIn){
             lineNum = functions[inputs[0]];
 
             std::unordered_map<std::string, boost::variant<std::string,int,double>> thisScope;
+            std::unordered_map<std::string, int> thisScopeUndeclared;
             
             for(int i=1;i<inputs.size()-1;i++){
                 if(thisScope.count(functionParams[inputs[0]][i])){
@@ -253,6 +256,7 @@ int runCode(char* codeIn){
                 thisScope[functionParams[inputs[0]][i]] = variables.top()[inputs[i+1]];
             }
             variables.push(thisScope);
+            undeclared.push(thisScopeUndeclared);
             returnVars.push(inputs[1]);
             break;
         }
@@ -276,15 +280,16 @@ int runCode(char* codeIn){
 
             boost::variant<std::string,int,double> result = variables.top()[functionParams[functionName][0]];
             variables.pop();
+            undeclared.pop();
 
             if(variables.top().count(returnVar)){
                 std::cout << "Error on Line: " << lineNum << ", Variable already declared: " << returnVar << '\n';
                 return 1;
             }
-            if(undeclared.count(returnVar) && undeclared[returnVar] == result.which()){
+            if(undeclared.top().count(returnVar) && undeclared.top()[returnVar] == result.which()){
                 variables.top()[returnVar] = result;
-                undeclared.erase(returnVar);
-            }else if(undeclared.count(returnVar)){
+                undeclared.top().erase(returnVar);
+            }else if(undeclared.top().count(returnVar)){
                 std::cout << "Error on Line: " << lineNum << ", Returned variable does not match desired type in function: " << functionName << '\n';
                 return 1;
             }else{
@@ -304,7 +309,7 @@ int runCode(char* codeIn){
             }if(variables.top().count(inputs[0])){
                 std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << '\n';
                 return 1;
-            }if(undeclared.count(inputs[0]) && undeclared[inputs[0]] == 0){
+            }if(undeclared.top().count(inputs[0]) && undeclared.top()[inputs[0]] == 0){
                 std::cout << "Error on Line: " << lineNum << ", Cannot store int into string: " << inputs[0] << '\n';
                 return 1;
             }
@@ -329,8 +334,8 @@ int runCode(char* codeIn){
                 upper = boost::get<int>(variables.top()[inputs[2]]);
             }
 
-            if(undeclared.count(inputs[0])){
-                undeclared.erase(inputs[0]);
+            if(undeclared.top().count(inputs[0])){
+                undeclared.top().erase(inputs[0]);
             }
             variables.top()[inputs[0]] = (int)(rand()%(upper+1-lower)+lower);
 
@@ -348,7 +353,7 @@ int runCode(char* codeIn){
             }if(variables.top().count(inputs[0])){
                 std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << '\n';
                 return 1;
-            }if(undeclared.count(inputs[0]) && undeclared[inputs[0]]==0){
+            }if(undeclared.top().count(inputs[0]) && undeclared.top()[inputs[0]]==0){
                 printf("Error on Line: %d, cannot store boolean into string\n",lineNum);
                 return 1;
             }if(!variables.top().count(inputs[1]) || variables.top()[inputs[1]].which() == 0){
@@ -364,15 +369,15 @@ int runCode(char* codeIn){
                 value = boost::get<double>(variables.top()[inputs[1]]);
             }
             
-            if(undeclared.count(inputs[0])){
-                switch(undeclared[inputs[0]]){
+            if(undeclared.top().count(inputs[0])){
+                switch(undeclared.top()[inputs[0]]){
                 case 1:
                     variables.top()[inputs[0]] = (int)!value;
                     break;
                 case 2:
                     variables.top()[inputs[0]] = (double)!value;
                 }
-                undeclared.erase(inputs[0]);
+                undeclared.top().erase(inputs[0]);
             }else{
                 variables.top()[inputs[0]] = (int)!value;
             }
@@ -390,7 +395,7 @@ int runCode(char* codeIn){
             }if(variables.top().count(inputs[0])){
                 std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << '\n';
                 return 1;
-            }if(undeclared.count(inputs[0]) && undeclared[inputs[0]]==0){
+            }if(undeclared.top().count(inputs[0]) && undeclared.top()[inputs[0]]==0){
                 printf("Error on Line: %d, cannot store boolean into string\n",lineNum);
                 return 1;
             }if(!variables.top().count(inputs[1]) || variables.top()[inputs[1]].which() == 0){
@@ -416,15 +421,15 @@ int runCode(char* codeIn){
                 second = boost::get<double>(variables.top()[inputs[2]]);
             }
 
-            if(undeclared.count(inputs[0])){
-                switch(undeclared[inputs[0]]){
+            if(undeclared.top().count(inputs[0])){
+                switch(undeclared.top()[inputs[0]]){
                 case 1:
                     variables.top()[inputs[0]] = (int)(first && second);
                     break;
                 case 2:
                     variables.top()[inputs[0]] = (double)(first && second);
                 }
-                undeclared.erase(inputs[0]);
+                undeclared.top().erase(inputs[0]);
             }else{
                 variables.top()[inputs[0]] = (int)(first && second);
             }
@@ -442,7 +447,7 @@ int runCode(char* codeIn){
             }if(variables.top().count(inputs[0])){
                 std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << '\n';
                 return 1;
-            }if(undeclared.count(inputs[0]) && undeclared[inputs[0]]==0){
+            }if(undeclared.top().count(inputs[0]) && undeclared.top()[inputs[0]]==0){
                 printf("Error on Line: %d, cannot store boolean into string\n",lineNum);
                 return 1;
             }if(!variables.top().count(inputs[1]) || variables.top()[inputs[1]].which() == 0){
@@ -468,15 +473,15 @@ int runCode(char* codeIn){
                 second = boost::get<double>(variables.top()[inputs[2]]);
             }
 
-            if(undeclared.count(inputs[0])){
-                switch(undeclared[inputs[0]]){
+            if(undeclared.top().count(inputs[0])){
+                switch(undeclared.top()[inputs[0]]){
                 case 1:
                     variables.top()[inputs[0]] = (int)(first || second);
                     break;
                 case 2:
                     variables.top()[inputs[0]] = (double)(first || second);
                 }
-                undeclared.erase(inputs[0]);
+                undeclared.top().erase(inputs[0]);
             }else{
                 variables.top()[inputs[0]] = (int)(first || second);
             }
@@ -494,7 +499,7 @@ int runCode(char* codeIn){
             }if(variables.top().count(inputs[0])){
                 std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << '\n';
                 return 1;
-            }if(undeclared.count(inputs[0]) && undeclared[inputs[0]]==0){
+            }if(undeclared.top().count(inputs[0]) && undeclared.top()[inputs[0]]==0){
                 printf("Error on Line: %d, cannot store boolean into string\n",lineNum);
                 return 1;
             }if(!variables.top().count(inputs[1])){
@@ -552,15 +557,15 @@ int runCode(char* codeIn){
                 }
             }
 
-            if(undeclared.count(inputs[0])){
-                switch(undeclared[inputs[0]]){
+            if(undeclared.top().count(inputs[0])){
+                switch(undeclared.top()[inputs[0]]){
                 case 1:
                     variables.top()[inputs[0]] = (int)result;
                     break;
                 case 2:
                     variables.top()[inputs[0]] = (double)result;
                 }
-                undeclared.erase(inputs[0]);
+                undeclared.top().erase(inputs[0]);
             }else{
                 variables.top()[inputs[0]] = (int)result;
             }
@@ -578,7 +583,7 @@ int runCode(char* codeIn){
             }if(variables.top().count(inputs[0])){
                 std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << '\n';
                 return 1;
-            }if(undeclared.count(inputs[0]) && undeclared[inputs[0]]==0){
+            }if(undeclared.top().count(inputs[0]) && undeclared.top()[inputs[0]]==0){
                 printf("Error on Line: %d, cannot store boolean into string\n",lineNum);
                 return 1;
             }if(!variables.top().count(inputs[1]) || variables.top()[inputs[1]].which() == 0){
@@ -609,15 +614,15 @@ int runCode(char* codeIn){
                 case 2:
                     result = boost::get<double>(variables.top()[inputs[1]]) > value;
             }
-            if(undeclared.count(inputs[0])){
-                switch(undeclared[inputs[0]]){
+            if(undeclared.top().count(inputs[0])){
+                switch(undeclared.top()[inputs[0]]){
                 case 1:
                     variables.top()[inputs[0]] = (int)result;
                     break;
                 case 2:
                     variables.top()[inputs[0]] = (double)result;
                 }
-                undeclared.erase(inputs[0]);
+                undeclared.top().erase(inputs[0]);
             }else{
                 variables.top()[inputs[0]] = (int)result;
             }
@@ -635,7 +640,7 @@ int runCode(char* codeIn){
             }if(variables.top().count(inputs[0])){
                 std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << '\n';
                 return 1;
-            }if(undeclared.count(inputs[0]) && undeclared[inputs[0]]==0){
+            }if(undeclared.top().count(inputs[0]) && undeclared.top()[inputs[0]]==0){
                 printf("Error on Line: %d, cannot store boolean into string\n",lineNum);
                 return 1;
             }if(!variables.top().count(inputs[1]) || variables.top()[inputs[1]].which() == 0){
@@ -666,15 +671,15 @@ int runCode(char* codeIn){
                 case 2:
                     result = boost::get<double>(variables.top()[inputs[1]]) < value;
             }
-            if(undeclared.count(inputs[0])){
-                switch(undeclared[inputs[0]]){
+            if(undeclared.top().count(inputs[0])){
+                switch(undeclared.top()[inputs[0]]){
                 case 1:
                     variables.top()[inputs[0]] = (int)result;
                     break;
                 case 2:
                     variables.top()[inputs[0]] = (double)result;
                 }
-                undeclared.erase(inputs[0]);
+                undeclared.top().erase(inputs[0]);
             }else{
                 variables.top()[inputs[0]] = (int)result;
             }
@@ -692,7 +697,7 @@ int runCode(char* codeIn){
             }if(variables.top().count(inputs[0])){
                 std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << '\n';
                 return 1;
-            }if(undeclared.count(inputs[0]) && undeclared[inputs[0]]==0){
+            }if(undeclared.top().count(inputs[0]) && undeclared.top()[inputs[0]]==0){
                 printf("Error on Line: %d, cannot store boolean into string\n",lineNum);
                 return 1;
             }if(!variables.top().count(inputs[1]) || variables.top()[inputs[1]].which() == 0){
@@ -723,15 +728,15 @@ int runCode(char* codeIn){
                 case 2:
                     result = boost::get<double>(variables.top()[inputs[1]]) >= value;
             }
-            if(undeclared.count(inputs[0])){
-                switch(undeclared[inputs[0]]){
+            if(undeclared.top().count(inputs[0])){
+                switch(undeclared.top()[inputs[0]]){
                 case 1:
                     variables.top()[inputs[0]] = (int)result;
                     break;
                 case 2:
                     variables.top()[inputs[0]] = (double)result;
                 }
-                undeclared.erase(inputs[0]);
+                undeclared.top().erase(inputs[0]);
             }else{
                 variables.top()[inputs[0]] = (int)result;
             }
@@ -749,7 +754,7 @@ int runCode(char* codeIn){
             }if(variables.top().count(inputs[0])){
                 std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << '\n';
                 return 1;
-            }if(undeclared.count(inputs[0]) && undeclared[inputs[0]]==0){
+            }if(undeclared.top().count(inputs[0]) && undeclared.top()[inputs[0]]==0){
                 printf("Error on Line: %d, cannot store boolean into string\n",lineNum);
                 return 1;
             }if(!variables.top().count(inputs[1]) || variables.top()[inputs[1]].which() == 0){
@@ -780,15 +785,15 @@ int runCode(char* codeIn){
                 case 2:
                     result = boost::get<double>(variables.top()[inputs[1]]) <= value;
             }
-            if(undeclared.count(inputs[0])){
-                switch(undeclared[inputs[0]]){
+            if(undeclared.top().count(inputs[0])){
+                switch(undeclared.top()[inputs[0]]){
                 case 1:
                     variables.top()[inputs[0]] = (int)result;
                     break;
                 case 2:
                     variables.top()[inputs[0]] = (double)result;
                 }
-                undeclared.erase(inputs[0]);
+                undeclared.top().erase(inputs[0]);
             }else{
                 variables.top()[inputs[0]] = (int)result;
             }
@@ -828,8 +833,8 @@ int runCode(char* codeIn){
             }if(variables.top().count(inputs[0])){
                 std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << '\n';
                 return 1;
-            }if(undeclared.count(inputs[0])){
-                switch(undeclared[inputs[0]]){
+            }if(undeclared.top().count(inputs[0])){
+                switch(undeclared.top()[inputs[0]]){
                 case 0:{
                     std::string userIn;
                     std::getline(std::cin,userIn);
@@ -852,7 +857,7 @@ int runCode(char* codeIn){
                     }
                     variables.top()[inputs[0]] = userIn;
                 }
-                undeclared.erase(inputs[0]);
+                undeclared.top().erase(inputs[0]);
             }else{
                 std::string userIn;
                 std::getline(std::cin,userIn);
@@ -872,8 +877,8 @@ int runCode(char* codeIn){
                 printf("Error on Line: %d, Variable already in use: %s\n",lineNum, params);
                 return 1;
             }
-            if(undeclared.count(params)){
-                switch(undeclared[params]){
+            if(undeclared.top().count(params)){
+                switch(undeclared.top()[params]){
                 case 0:
                     printf("Error on Line: %d, cannot store time into string\n",lineNum);
                     return 1;
@@ -883,7 +888,7 @@ int runCode(char* codeIn){
                 case 2:
                     variables.top()[params] = (double)time(NULL);
                 }
-                undeclared.erase(params);
+                undeclared.top().erase(params);
             }else{
                 variables.top()[params] = (double)time(NULL);
             }
@@ -940,8 +945,8 @@ int runCode(char* codeIn){
                 }
             }
 
-            if(undeclared.count(inputs[0])){
-                switch(undeclared[inputs[0]]){
+            if(undeclared.top().count(inputs[0])){
+                switch(undeclared.top()[inputs[0]]){
                 case 0:
                     std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << '\n';
                     return 1;
@@ -950,7 +955,7 @@ int runCode(char* codeIn){
                     break;
                 case 2:
                     variables.top()[inputs[0]] = a+b;
-                undeclared.erase(inputs[0]);
+                undeclared.top().erase(inputs[0]);
                 }
             }else{
                 variables.top()[inputs[0]] = a+b;
@@ -1009,8 +1014,8 @@ int runCode(char* codeIn){
                 }
             }
 
-            if(undeclared.count(inputs[0])){
-                switch(undeclared[inputs[0]]){
+            if(undeclared.top().count(inputs[0])){
+                switch(undeclared.top()[inputs[0]]){
                 case 0:
                     std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << '\n';
                     return 1;
@@ -1019,7 +1024,7 @@ int runCode(char* codeIn){
                     break;
                 case 2:
                     variables.top()[inputs[0]] = a-b;
-                undeclared.erase(inputs[0]);
+                undeclared.top().erase(inputs[0]);
                 }
             }else{
                 variables.top()[inputs[0]] = a-b;
@@ -1078,8 +1083,8 @@ int runCode(char* codeIn){
                 }
             }
 
-            if(undeclared.count(inputs[0])){
-                switch(undeclared[inputs[0]]){
+            if(undeclared.top().count(inputs[0])){
+                switch(undeclared.top()[inputs[0]]){
                 case 0:
                     std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << '\n';
                     return 1;
@@ -1088,7 +1093,7 @@ int runCode(char* codeIn){
                     break;
                 case 2:
                     variables.top()[inputs[0]] = a*b;
-                undeclared.erase(inputs[0]);
+                undeclared.top().erase(inputs[0]);
                 }
             }else{
                 variables.top()[inputs[0]] = a*b;
@@ -1147,8 +1152,8 @@ int runCode(char* codeIn){
                 }
             }
 
-            if(undeclared.count(inputs[0])){
-                switch(undeclared[inputs[0]]){
+            if(undeclared.top().count(inputs[0])){
+                switch(undeclared.top()[inputs[0]]){
                 case 0:
                     std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << '\n';
                     return 1;
@@ -1157,7 +1162,7 @@ int runCode(char* codeIn){
                     break;
                 case 2:
                     variables.top()[inputs[0]] = a/b;
-                undeclared.erase(inputs[0]);
+                undeclared.top().erase(inputs[0]);
                 }
             }else{
                 variables.top()[inputs[0]] = a/b;
@@ -1216,8 +1221,8 @@ int runCode(char* codeIn){
                 }
             }
 
-            if(undeclared.count(inputs[0])){
-                switch(undeclared[inputs[0]]){
+            if(undeclared.top().count(inputs[0])){
+                switch(undeclared.top()[inputs[0]]){
                 case 0:
                     std::cout << "Error on Line: " << lineNum << ", Invalid parameter type for add: " << inputs[2] << '\n';
                     return 1;
@@ -1236,7 +1241,7 @@ int runCode(char* codeIn){
                         printf("Error on Line: %d, divide by zero\n",lineNum);
                         return 1;
                     }
-                undeclared.erase(inputs[0]);
+                undeclared.top().erase(inputs[0]);
                 }
             }else{
                 std::feclearexcept(FE_ALL_EXCEPT);
@@ -1266,11 +1271,11 @@ int runCode(char* codeIn){
                     return 1;
                 }
                 variables.top()[varName] = value;
-                if(undeclared.count(varName)){
-                    undeclared.erase(varName);
+                if(undeclared.top().count(varName)){
+                    undeclared.top().erase(varName);
                 }
             }else if(!variables.top().count(params)){
-                undeclared[params] = 1;
+                undeclared.top()[params] = 1;
             }else{
                 printf("Error on Line: %d, Variable already in use: %s\n",lineNum, params);
                 return 1;
@@ -1290,11 +1295,11 @@ int runCode(char* codeIn){
                 std::string value = index+1;
                 value.erase(remove(value.begin(), value.end(), '\"'),value.end());
                 variables.top()[varName] = value;
-                if(undeclared.count(varName)){
-                    undeclared.erase(varName);
+                if(undeclared.top().count(varName)){
+                    undeclared.top().erase(varName);
                 }
             }else if(!variables.top().count(params)){
-                undeclared[params] = 0;
+                undeclared.top()[params] = 0;
             }else{
                 printf("Error on Line: %d, Variable already in use: %s\n",lineNum, params);
                 return 1;
@@ -1319,11 +1324,11 @@ int runCode(char* codeIn){
                     return 1;
                 }
                 variables.top()[varName] = value;
-                if(undeclared.count(varName)){
-                    undeclared.erase(varName);
+                if(undeclared.top().count(varName)){
+                    undeclared.top().erase(varName);
                 }
             }else if(!variables.top().count(params)){
-                undeclared[params] = 2;
+                undeclared.top()[params] = 2;
             }else{
                 printf("Error on Line: %d, Variable already in use: %s\n",lineNum, params);
                 return 1;
@@ -1358,8 +1363,8 @@ int runCode(char* codeIn){
                 printf("Error on Line: %d, Variable already in use: %s\n",lineNum, params);
                 return 1;
             }
-            if(undeclared.count(params)){
-                switch(undeclared[params]){
+            if(undeclared.top().count(params)){
+                switch(undeclared.top()[params]){
                 case 0:
                     if(theStack.top().which() != 0){
                         printf("Error on Line: %d, Invalid variable type: %s\n",lineNum, params);
@@ -1390,7 +1395,7 @@ int runCode(char* codeIn){
                     case 2:
                         variables.top()[params] = theStack.top();
                     }
-                undeclared.erase(params);
+                undeclared.top().erase(params);
                 }
             }
             variables.top()[params] = theStack.top();
@@ -1434,8 +1439,8 @@ int runCode(char* codeIn){
                 printf("Error on Line: %d, Index out of range: %d\n",lineNum, index);
                 return 1;
             }
-            if(undeclared.count(inputs[0])){
-                switch(undeclared[inputs[0]]){
+            if(undeclared.top().count(inputs[0])){
+                switch(undeclared.top()[inputs[0]]){
                 case 0:{
                     std::string s(1,text[index]);
                     variables.top()[inputs[0]] = s;
@@ -1447,7 +1452,7 @@ int runCode(char* codeIn){
                 case 2:
                     variables.top()[inputs[0]] = (double)text[index];
                     break;
-                undeclared.erase(inputs[0]);
+                undeclared.top().erase(inputs[0]);
                 }
             }else{
                 std::string s(1,text[index]);
@@ -1472,8 +1477,8 @@ int runCode(char* codeIn){
                 std::cout << "Error on Line: " << lineNum << ", No string named: " << inputs[1] << '\n';
                 return 1;
             }
-            if(undeclared.count(inputs[0])){
-                switch(undeclared[inputs[0]]){
+            if(undeclared.top().count(inputs[0])){
+                switch(undeclared.top()[inputs[0]]){
                 case 0:
                     printf("Error on Line: %d, cannot store number into string\n",lineNum);
                     return 1;
@@ -1483,7 +1488,7 @@ int runCode(char* codeIn){
                 case 2:
                     variables.top()[inputs[0]] = (double)boost::get<std::string>(variables.top()[inputs[1]]).length();
                     break;
-                undeclared.erase(inputs[0]);
+                undeclared.top().erase(inputs[0]);
                 }
             }else{
                 variables.top()[inputs[0]] = (int)boost::get<std::string>(variables.top()[inputs[1]]).length();
@@ -1517,12 +1522,12 @@ int runCode(char* codeIn){
                 std::cout << "Error on Line: " << lineNum << ", Cannot copy from undeclared variable: " << inputs[1] << '\n';
                 return 1;
             }
-            if(undeclared.count(inputs[0])){
-                if(undeclared[inputs[0]] != variables.top()[inputs[1]].which()){
+            if(undeclared.top().count(inputs[0])){
+                if(undeclared.top()[inputs[0]] != variables.top()[inputs[1]].which()){
                     printf("Error on Line: %d, Mismatched parameter types", lineNum);
                     return 1;
                 }
-                undeclared.erase(inputs[0]);
+                undeclared.top().erase(inputs[0]);
             }
             variables.top()[inputs[0]] = variables.top()[inputs[1]];
 
@@ -1541,8 +1546,8 @@ int runCode(char* codeIn){
                 std::cout << "Error on Line: " << lineNum << ", Variable already in use: " << inputs[0] << '\n';
                 return 1;
             }
-            if(undeclared.count(inputs[0])){
-                switch(undeclared[inputs[0]]){
+            if(undeclared.top().count(inputs[0])){
+                switch(undeclared.top()[inputs[0]]){
                 case 0:
                     printf("Error on Line: %d, cannot store bool into string\n",lineNum);
                     return 1;
@@ -1551,7 +1556,7 @@ int runCode(char* codeIn){
                     break;
                 case 2:
                     variables.top()[inputs[0]] = (double)variables.top().count(inputs[1]);
-                undeclared.erase(inputs[0]);
+                undeclared.top().erase(inputs[0]);
                 }
             }else{
                 variables.top()[inputs[0]] = (int)variables.top().count(inputs[1]);
